@@ -1,0 +1,39 @@
+plugins {
+    id 'maven-publish'
+}
+
+allprojects {
+    apply plugin: 'java-library'
+    
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+
+    group = 'com.bettercloud'
+    version = '1.0.0'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    publishing {
+        publications {
+            "$project.name"(MavenPublication) {
+                groupId project.group
+                artifactId project.name
+                version project.version
+                from project.components.java
+            }
+        }
+    }
+
+    dependencies {
+        testImplementation "junit:junit:$junitVersion"
+        testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    }
+}
+
+wrapper {
+    gradleVersion = '5.2.1'
+}

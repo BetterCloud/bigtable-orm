@@ -1,0 +1,10 @@
+rootProject.name = 'bigtable-orm'
+
+include ':bigtable-orm-annotations'
+project(':bigtable-orm-annotations').projectDir = file('annotations')
+
+include ':bigtable-orm-compiler'
+project(':bigtable-orm-compiler').projectDir = file('compiler')
+
+include ':bigtable-orm-core'
+project(':bigtable-orm-core').projectDir = file('core')
