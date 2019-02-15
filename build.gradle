@@ -1,5 +1,5 @@
 group = 'com.bettercloud'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.0'
 
 ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
@@ -20,6 +20,7 @@ if (!hasProperty('nexusPassword')) {
 }
 
 allprojects {
+    apply plugin: 'maven'
     apply plugin: 'java-library'
 
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -31,7 +32,6 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'maven'
     apply plugin: 'signing'
     
     group = rootProject.group
@@ -105,6 +105,11 @@ subprojects {
             }
         }
     }
+}
+
+uploadArchives {
+    dependsOn = subprojects.uploadArchives
+    enabled = false
 }
 
 wrapper {
