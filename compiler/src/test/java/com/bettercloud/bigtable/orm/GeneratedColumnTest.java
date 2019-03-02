@@ -28,7 +28,7 @@ public class GeneratedColumnTest {
     }
 
     @Test
-    public void testSingleColumnEntityConfigurationContainsColumnWithMatchingFamilyAndQualifierAndTypeReference() {
+    public void testSingleColumnEntityConfigurationContainsColumnWithMatchingFamilyAndQualifierAndTypeReferenceAndVersioning() {
         final EntityConfiguration<SingleColumnEntity> entityConfiguration = EntityRegistry.getConfigurationForType(SingleColumnEntity.class);
 
         assertNotNull(entityConfiguration);
@@ -39,6 +39,7 @@ public class GeneratedColumnTest {
                 .filter(column -> EntityConfigurationTableConfiguration.SingleColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
                 .filter(column -> EntityConfigurationTableConfiguration.SingleColumnEntity.COLUMN_QUALIFIER.equals(column.getQualifier()))
                 .filter(column -> String.class.equals(column.getTypeReference().getType()))
+                .filter(column -> !column.isVersioned())
                 .collect(Collectors.toList());
 
         assertNotNull(results);
@@ -46,7 +47,7 @@ public class GeneratedColumnTest {
     }
 
     @Test
-    public void testInferredColumnQualifierEntityConfigurationContainsColumnWithDefinedFamilyAndTypeReferenceWithFieldNameAsQualifier() {
+    public void testInferredColumnQualifierEntityConfigurationContainsColumnWithDefinedFamilyAndTypeReferenceAndVersioningWithFieldNameAsQualifier() {
         final EntityConfiguration<InferredColumnQualifierEntity> entityConfiguration = EntityRegistry.getConfigurationForType(InferredColumnQualifierEntity.class);
 
         assertNotNull(entityConfiguration);
@@ -57,6 +58,7 @@ public class GeneratedColumnTest {
                 .filter(column -> EntityConfigurationTableConfiguration.InferredColumnQualifierEntity.COLUMN_FAMILY.equals(column.getFamily()))
                 .filter(column -> "column".equals(column.getQualifier()))
                 .filter(column -> String.class.equals(column.getTypeReference().getType()))
+                .filter(column -> !column.isVersioned())
                 .collect(Collectors.toList());
 
         assertNotNull(results);
@@ -64,7 +66,7 @@ public class GeneratedColumnTest {
     }
 
     @Test
-    public void testMultiColumnEntityConfigurationContainsColumnWithMatchingFamilyAndQualifierAndTypeReferenceForAllFields() {
+    public void testMultiColumnEntityConfigurationContainsColumnWithMatchingFamilyAndQualifierAndTypeReferenceAndVersioningForAllFields() {
         final EntityConfiguration<MultiColumnEntity> entityConfiguration = EntityRegistry.getConfigurationForType(MultiColumnEntity.class);
 
         assertNotNull(entityConfiguration);
@@ -75,6 +77,7 @@ public class GeneratedColumnTest {
                 .filter(column -> EntityConfigurationTableConfiguration.MultiColumnEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
                 .filter(column -> EntityConfigurationTableConfiguration.MultiColumnEntity.COLUMN_QUALIFIER_1.equals(column.getQualifier()))
                 .filter(column -> String.class.equals(column.getTypeReference().getType()))
+                .filter(column -> !column.isVersioned())
                 .collect(Collectors.toList());
 
         assertNotNull(results1);
@@ -84,6 +87,7 @@ public class GeneratedColumnTest {
                 .filter(column -> EntityConfigurationTableConfiguration.MultiColumnEntity.COLUMN_FAMILY_2.equals(column.getFamily()))
                 .filter(column -> EntityConfigurationTableConfiguration.MultiColumnEntity.COLUMN_QUALIFIER_2.equals(column.getQualifier()))
                 .filter(column -> Integer.class.equals(column.getTypeReference().getType()))
+                .filter(column -> !column.isVersioned())
                 .collect(Collectors.toList());
 
         assertNotNull(results2);
@@ -91,7 +95,7 @@ public class GeneratedColumnTest {
     }
 
     @Test
-    public void testPrimitiveColumnEntityConfigurationContainsColumnWithDefinedFamilyAndQualifierWithBoxedTypeReference() {
+    public void testPrimitiveColumnEntityConfigurationContainsColumnWithDefinedFamilyAndQualifierAndVersioningWithBoxedTypeReference() {
         final EntityConfiguration<PrimitiveColumnEntity> entityConfiguration = EntityRegistry.getConfigurationForType(PrimitiveColumnEntity.class);
 
         assertNotNull(entityConfiguration);
@@ -102,6 +106,26 @@ public class GeneratedColumnTest {
                 .filter(column -> EntityConfigurationTableConfiguration.PrimitiveColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
                 .filter(column -> EntityConfigurationTableConfiguration.PrimitiveColumnEntity.COLUMN_QUALIFIER.equals(column.getQualifier()))
                 .filter(column -> Boolean.class.equals(column.getTypeReference().getType()))
+                .filter(column -> !column.isVersioned())
+                .collect(Collectors.toList());
+
+        assertNotNull(results);
+        assertEquals(1, results.size());
+    }
+
+    @Test
+    public void testVersionedColumnEntityConfigurationContainsColumnWithDefinedFamilyAndQualifierAndVersioning() {
+        final EntityConfiguration<VersionedColumnEntity> entityConfiguration = EntityRegistry.getConfigurationForType(VersionedColumnEntity.class);
+
+        assertNotNull(entityConfiguration);
+
+        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+
+        final List<com.bettercloud.bigtable.orm.Column> results = StreamSupport.stream(columns.spliterator(), false)
+                .filter(column -> EntityConfigurationTableConfiguration.VersionedColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
+                .filter(column -> EntityConfigurationTableConfiguration.VersionedColumnEntity.COLUMN_QUALIFIER.equals(column.getQualifier()))
+                .filter(column -> Boolean.class.equals(column.getTypeReference().getType()))
+                .filter(com.bettercloud.bigtable.orm.Column::isVersioned)
                 .collect(Collectors.toList());
 
         assertNotNull(results);
@@ -161,6 +185,18 @@ public class GeneratedColumnTest {
             private static final String COLUMN_QUALIFIER = "my_column_qualifier";
 
             @Column(family = COLUMN_FAMILY, qualifier = COLUMN_QUALIFIER)
+            private boolean column;
+        }
+
+        @Entity(keyComponents = {
+                @KeyComponent(constant = "constant")
+        })
+        private class VersionedColumnEntity {
+
+            private static final String COLUMN_FAMILY = "my_column_family";
+            private static final String COLUMN_QUALIFIER = "my_column_qualifier";
+
+            @Column(family = COLUMN_FAMILY, qualifier = COLUMN_QUALIFIER, versioned = true)
             private boolean column;
         }
     }

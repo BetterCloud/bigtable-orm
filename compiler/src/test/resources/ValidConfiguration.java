@@ -22,7 +22,7 @@ class ValidConfiguration {
         @Column(family = "family")
         private String[] value2;
 
-        @Column(family = "family", qualifier = "qualifier3")
+        @Column(family = "family", qualifier = "qualifier3", versioned = true)
         private int value3;
     }
 }

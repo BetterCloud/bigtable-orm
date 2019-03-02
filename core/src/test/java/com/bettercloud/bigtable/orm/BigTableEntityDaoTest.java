@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,12 @@ public class BigTableEntityDaoTest {
 
     private final Function<TestEntity, EntityConfiguration.EntityDelegate<TestEntity>> delegateFactory = TestDelegate::new;
 
+    private final List<Column> versionedColumns = Arrays.asList(TestVersionedColumns.values());
+
+    private final Supplier<TestVersionedEntity> versionedEntityFactory = TestVersionedEntity::new;
+
+    private final Function<TestVersionedEntity, EntityConfiguration.EntityDelegate<TestVersionedEntity>> versionedDelegateFactory = TestVersionedDelegate::new;
+
     @Mock
     private ObjectMapper objectMapper;
 
@@ -51,11 +58,20 @@ public class BigTableEntityDaoTest {
 
     private Dao<TestEntity> testEntityDao;
 
+    private Dao<TestVersionedEntity> testVersionedEntityDao;
+
     @Before
     public void setup() {
         initMocks(this);
 
         testEntityDao = new BigTableEntityDao<>(table, columns, entityFactory, delegateFactory, objectMapper);
+        testVersionedEntityDao = new BigTableEntityDao<>(table, versionedColumns, versionedEntityFactory,
+                versionedDelegateFactory, objectMapper);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetWithNullKeyThrowsNullPointerException() throws IOException {
+        testEntityDao.get(null);
     }
 
     @Test
@@ -183,6 +199,57 @@ public class BigTableEntityDaoTest {
 
         final TestEntity entity = retrievedEntity.get();
         assertNull(entity.getNestedObject());
+    }
+
+    @Test
+    public void testGetRetrievesVersionedValuesAndTimestamps() throws IOException {
+        final String stringValue = "some string";
+
+        final Boolean booleanValue = true;
+        final long booleanValueTimestamp = 1234L;
+
+        final Result result = mock(Result.class);
+        when(result.isEmpty()).thenReturn(false);
+
+        final Cell stringValueCell = mock(Cell.class);
+
+        final byte[] stringValueBytes = new byte[] {
+                1, 2, 3
+        };
+
+        when(stringValueCell.getValueArray()).thenReturn(stringValueBytes);
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
+
+        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTypeReference()))
+                .thenReturn(stringValue);
+
+        final Cell booleanValueCell = mock(Cell.class);
+
+        final byte[] booleanValueBytes = new byte[] {
+                0
+        };
+
+        when(booleanValueCell.getValueArray()).thenReturn(booleanValueBytes);
+        when(booleanValueCell.getTimestamp()).thenReturn(booleanValueTimestamp);
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
+
+        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTypeReference()))
+                .thenReturn(booleanValue);
+
+        when(table.get(any(Get.class))).thenReturn(result);
+
+        final Optional<TestVersionedEntity> retrievedEntity = testVersionedEntityDao.get(new StringKey<>("key"));
+
+        assertTrue(retrievedEntity.isPresent());
+
+        final TestVersionedEntity entity = retrievedEntity.get();
+        assertEquals(stringValue, entity.getStringValue());
+        assertEquals(booleanValue, entity.getVersionedBooleanValue());
+        assertEquals(booleanValueTimestamp, (long) entity.getVersionedBooleanValueTimestamp());
     }
 
     @Test
@@ -408,6 +475,21 @@ public class BigTableEntityDaoTest {
         assertFalse(retrievedEntity.isPresent());
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testSaveWithNullKeyThrowsNullPointerException() throws IOException {
+        final TestEntity testEntity = new TestEntity();
+        testEntity.setStringValue("test");
+
+        testEntityDao.save(null, testEntity);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testSaveWithNullEntityThrowsNullPointerException() throws IOException {
+        final Key<TestEntity> key = new StringKey<>("key");
+
+        testEntityDao.save(key, null);
+    }
+
     @Test
     public void testSavePutsAllColumns() throws IOException {
         final String stringValue = "some string";
@@ -440,7 +522,13 @@ public class BigTableEntityDaoTest {
 
         when(objectMapper.writeValueAsBytes(nestedObject)).thenReturn(nestedObjectBytes);
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -473,7 +561,13 @@ public class BigTableEntityDaoTest {
         testEntity.setBooleanValue(booleanValue);
         testEntity.setNestedObject(nestedObject);
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -514,7 +608,13 @@ public class BigTableEntityDaoTest {
         testEntity.setBooleanValue(booleanValue);
         testEntity.setNestedObject(nestedObject);
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -555,7 +655,13 @@ public class BigTableEntityDaoTest {
         testEntity.setBooleanValue(booleanValue);
         testEntity.setNestedObject(nestedObject);
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -595,7 +701,13 @@ public class BigTableEntityDaoTest {
         testEntity.setBooleanValue(booleanValue);
         testEntity.setNestedObject(nestedObject);
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -647,7 +759,13 @@ public class BigTableEntityDaoTest {
 
         final byte[] nestedObjectBytes = new byte[0];
 
-        testEntityDao.save(new StringKey<>("key"), testEntity);
+        final TestEntity result = testEntityDao.save(new StringKey<>("key"), testEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getBooleanValue());
+        assertEquals(nestedObject, result.getNestedObject());
 
         final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
 
@@ -662,6 +780,100 @@ public class BigTableEntityDaoTest {
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()), booleanValueBytes));
         assertTrue(put.has(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()), nestedObjectBytes));
+    }
+
+    @Test
+    public void testSavePutsVersionedColumnsWithDefinedTimestamp() throws IOException {
+        final String stringValue = "some string";
+
+        final Boolean booleanValue = true;
+        final long booleanValueTimestamp = 1234L;
+
+        final TestVersionedEntity testVersionedEntity = new TestVersionedEntity();
+        testVersionedEntity.setStringValue(stringValue);
+        testVersionedEntity.setVersionedBooleanValue(booleanValue, booleanValueTimestamp);
+
+        final byte[] stringValueBytes = {
+                1, 2, 3
+        };
+
+        when(objectMapper.writeValueAsBytes(stringValue)).thenReturn(stringValueBytes);
+
+        final byte[] booleanValueBytes = {
+                0
+        };
+
+        when(objectMapper.writeValueAsBytes(booleanValue)).thenReturn(booleanValueBytes);
+
+        final TestVersionedEntity result = testVersionedEntityDao.save(new StringKey<>("key"), testVersionedEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getVersionedBooleanValue());
+        assertEquals(booleanValueTimestamp, (long) result.getVersionedBooleanValueTimestamp());
+
+        final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
+
+        verify(table).put(putArgumentCaptor.capture());
+
+        final Put put = putArgumentCaptor.getValue();
+        assertNotNull(put);
+
+        assertTrue(put.has(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()), stringValueBytes));
+        assertTrue(put.has(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()), booleanValueBytes));
+    }
+
+    @Test
+    public void testSavePutsVersionedColumnsWithUndefinedTimestamp() throws IOException {
+        final String stringValue = "some string";
+
+        final Boolean booleanValue = true;
+
+        final TestVersionedEntity testVersionedEntity = new TestVersionedEntity();
+        testVersionedEntity.setStringValue(stringValue);
+        testVersionedEntity.setVersionedBooleanValue(booleanValue);
+
+        final byte[] stringValueBytes = {
+                1, 2, 3
+        };
+
+        when(objectMapper.writeValueAsBytes(stringValue)).thenReturn(stringValueBytes);
+
+        final byte[] booleanValueBytes = {
+                0
+        };
+
+        when(objectMapper.writeValueAsBytes(booleanValue)).thenReturn(booleanValueBytes);
+
+        final long atLeastTimestamp = Instant.now().toEpochMilli();
+
+        final TestVersionedEntity result = testVersionedEntityDao.save(new StringKey<>("key"), testVersionedEntity);
+
+        assertNotNull(result);
+
+        assertEquals(stringValue, result.getStringValue());
+        assertEquals(booleanValue, result.getVersionedBooleanValue());
+        assertTrue(result.getVersionedBooleanValueTimestamp() >= atLeastTimestamp);
+
+        final ArgumentCaptor<Put> putArgumentCaptor = ArgumentCaptor.forClass(Put.class);
+
+        verify(table).put(putArgumentCaptor.capture());
+
+        final Put put = putArgumentCaptor.getValue();
+        assertNotNull(put);
+
+        assertTrue(put.has(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()), stringValueBytes));
+        assertTrue(put.has(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()), booleanValueBytes));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testDeleteWithNullKeyThrowsNullPointerException() throws IOException {
+        testEntityDao.delete(null);
     }
 
     @Test
@@ -765,18 +977,20 @@ public class BigTableEntityDaoTest {
 
     private enum TestColumns implements Column {
 
-        STRING_VALUE("stringValueFamily", "stringValueQualifier", new TypeReference<String>() { }),
-        BOOLEAN_VALUE("booleanValueFamily", "booleanValueQualifier", new TypeReference<Boolean>() { }),
-        NESTED_OBJECT("nestedObjectFamily", "nestedObjectQualifier", new TypeReference<TestNestedObject>() { });
+        STRING_VALUE("stringValueFamily", "stringValueQualifier", new TypeReference<String>() { }, false),
+        BOOLEAN_VALUE("booleanValueFamily", "booleanValueQualifier", new TypeReference<Boolean>() { }, false),
+        NESTED_OBJECT("nestedObjectFamily", "nestedObjectQualifier", new TypeReference<TestNestedObject>() { }, false);
 
         private final String family;
         private final String qualifier;
         private final TypeReference<?> typeReference;
+        private final boolean isVersioned;
 
-        TestColumns(final String family, final String qualifier, final TypeReference<?> typeReference) {
+        TestColumns(final String family, final String qualifier, final TypeReference<?> typeReference, final boolean isVersioned) {
             this.family = family;
             this.qualifier = qualifier;
             this.typeReference = typeReference;
+            this.isVersioned = isVersioned;
         }
 
         @Override
@@ -792,6 +1006,11 @@ public class BigTableEntityDaoTest {
         @Override
         public TypeReference<?> getTypeReference() {
             return typeReference;
+        }
+
+        @Override
+        public boolean isVersioned() {
+            return isVersioned;
         }
     }
 
@@ -824,6 +1043,161 @@ public class BigTableEntityDaoTest {
                 entity.setBooleanValue((Boolean) value);
             } else if (TestColumns.NESTED_OBJECT.equals(column)) {
                 entity.setNestedObject((TestNestedObject) value);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public Long getColumnTimestamp(final Column column) {
+            throw new IllegalArgumentException();
+        }
+
+        @Override
+        public void setColumnTimestamp(final Column column, final long timestamp) {
+            throw new IllegalArgumentException();
+        }
+    }
+
+    private static class TestVersionedEntity implements Entity {
+
+        private String stringValue;
+        private Boolean versionedBooleanValue;
+        private Long versionedBooleanValueTimestamp;
+
+        public String getStringValue() {
+            return stringValue;
+        }
+
+        public void setStringValue(final String stringValue) {
+            this.stringValue = stringValue;
+        }
+
+        public Boolean getVersionedBooleanValue() {
+            return versionedBooleanValue;
+        }
+
+        public Long getVersionedBooleanValueTimestamp() {
+            return versionedBooleanValueTimestamp;
+        }
+
+        public void setVersionedBooleanValue(final Boolean versionedBooleanValue) {
+            this.versionedBooleanValue = versionedBooleanValue;
+            this.versionedBooleanValueTimestamp = null;
+        }
+
+        public void setVersionedBooleanValue(final Boolean versionedBooleanValue, final long timestamp) {
+            this.versionedBooleanValue = versionedBooleanValue;
+            this.versionedBooleanValueTimestamp = timestamp;
+        }
+
+        private void setVersionedBooleanValueTimestamp(final Long timestamp) {
+            this.versionedBooleanValueTimestamp = timestamp;
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            final TestVersionedEntity that = (TestVersionedEntity) o;
+
+            return Objects.equals(stringValue, that.stringValue)
+                    && Objects.equals(versionedBooleanValue, that.versionedBooleanValue);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(stringValue, versionedBooleanValue);
+        }
+    }
+
+    private enum TestVersionedColumns implements Column {
+
+        STRING_VALUE("stringValueFamily", "stringValueQualifier", new TypeReference<String>() { }, false),
+        VERSIONED_BOOLEAN_VALUE("versionedBooleanValueFamily", "versionedBooleanValueQualifier", new TypeReference<Boolean>() { }, true);
+
+        private final String family;
+        private final String qualifier;
+        private final TypeReference<?> typeReference;
+        private final boolean isVersioned;
+
+        TestVersionedColumns(final String family, final String qualifier, final TypeReference<?> typeReference, final boolean isVersioned) {
+            this.family = family;
+            this.qualifier = qualifier;
+            this.typeReference = typeReference;
+            this.isVersioned = isVersioned;
+        }
+
+        @Override
+        public String getFamily() {
+            return family;
+        }
+
+        @Override
+        public String getQualifier() {
+            return qualifier;
+        }
+
+        @Override
+        public TypeReference<?> getTypeReference() {
+            return typeReference;
+        }
+
+        @Override
+        public boolean isVersioned() {
+            return isVersioned;
+        }
+    }
+
+    private static class TestVersionedDelegate implements EntityConfiguration.EntityDelegate<TestVersionedEntity> {
+
+        private final TestVersionedEntity entity;
+
+        TestVersionedDelegate(final TestVersionedEntity entity) {
+            this.entity = entity;
+        }
+
+        @Override
+        public Object getColumnValue(final Column column) {
+            if (TestVersionedColumns.STRING_VALUE.equals(column)) {
+                return entity.getStringValue();
+            } else if (TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.equals(column)) {
+                return entity.getVersionedBooleanValue();
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public void setColumnValue(final Column column, final Object value) {
+            if (TestVersionedColumns.STRING_VALUE.equals(column)) {
+                entity.setStringValue((String) value);
+            } else if (TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.equals(column)) {
+                entity.setVersionedBooleanValue((Boolean) value);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public Long getColumnTimestamp(final Column column) {
+            if (TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.equals(column)) {
+                return entity.getVersionedBooleanValueTimestamp();
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
+
+        @Override
+        public void setColumnTimestamp(final Column column, final long timestamp) {
+            if (TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.equals(column)) {
+                entity.setVersionedBooleanValueTimestamp(timestamp);
             } else {
                 throw new IllegalArgumentException();
             }

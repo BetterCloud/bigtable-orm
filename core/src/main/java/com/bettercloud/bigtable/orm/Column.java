@@ -9,4 +9,6 @@ public interface Column {
     String getQualifier();
 
     TypeReference<?> getTypeReference();
+
+    boolean isVersioned();
 }

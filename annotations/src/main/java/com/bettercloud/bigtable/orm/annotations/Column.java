@@ -22,4 +22,11 @@ public @interface Column {
      * @return The column qualifier
      */
     String qualifier() default "";
+
+    /**
+     * When true, then additional getters and setters will be generated for maintaining the column's version.
+     *
+     * @return Whether the column should support versioning
+     */
+    boolean versioned() default false;
 }

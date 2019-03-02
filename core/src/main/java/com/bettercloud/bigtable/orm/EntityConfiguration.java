@@ -17,5 +17,9 @@ public interface EntityConfiguration<T extends Entity> {
         Object getColumnValue(final Column column);
 
         void setColumnValue(final Column column, final Object value);
+
+        Long getColumnTimestamp(final Column column);
+
+        void setColumnTimestamp(final Column column, final long timestamp);
     }
 }

@@ -62,6 +62,26 @@ public class GeneratedFieldTest {
         assertEquals(nestedObject, result);
     }
 
+    @Test
+    public void testVersionedFieldGetterReturnsValueSetBySetter() {
+        final VersionedFieldEntity entity = new VersionedFieldEntity();
+        entity.setIntField(10, 1234L);
+
+        assertEquals(10, (int) entity.getIntField());
+
+        entity.setIntField(null, 4321L);
+
+        assertNull(entity.getIntField());
+
+        entity.setIntField(5);
+
+        assertEquals(5, (int) entity.getIntField());
+
+        entity.setIntField(null);
+
+        assertNull(entity.getIntField());
+    }
+
     @Table("field_table")
     private class FieldTableConfiguration {
 
@@ -99,6 +119,15 @@ public class GeneratedFieldTest {
 
             @Column(family = "family")
             private NestedObject nestedObject;
+        }
+
+        @Entity(keyComponents = {
+                @KeyComponent(constant = "constant")
+        })
+        private class VersionedFieldEntity {
+
+            @Column(family = "family", versioned = true)
+            private int intField;
         }
     }
 
