@@ -336,7 +336,7 @@ jeff.setHeightInches(72, timestamp);
 
 final Person persistedJeff = personDao.save(jeffKey, jeff);
 
-assertEquals(72, persistedJeff.getHeightInches());
+assertEquals(72, (int) persistedJeff.getHeightInches());
 assertEquals(timestamp, (long) persistedJeff.getHeightInchesTimestamp());
 ```
 
@@ -354,7 +354,7 @@ final long minimumExpectedTimestamp = Instant.now().toEpochMilli();
 
 final Person persistedJeff = personDao.save(jeffKey, jeff);
 
-assertEquals(75, persistedJeff.getHeightInches());
+assertEquals(75, (int) persistedJeff.getHeightInches());
 assertTrue(persistedJeff.getHeightInchesTimestamp() >= minimumExpectedTimestamp);
 ```
 
