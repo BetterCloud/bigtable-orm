@@ -327,17 +327,17 @@ class PeopleTableConfiguration {
 To set the height for a person at a given timestamp, you can invoke the setter for the person's height, and provide the additional timestamp parameter:
 
 ```java
-final Key<Person> jeffKey = Person.keybuilder().ssn("000-00-0000").build();
+final Key<Person> jeffKey = Person.keyBuilder().ssn("000-00-0000").build();
 
 final long timestamp = Instant.now().toEpochMilli();
 
 final Person jeff = new Person();
-jeff.setHeight(72, timestamp);
+jeff.setHeightInches(72, timestamp);
 
 final Person persistedJeff = personDao.save(jeffKey, jeff);
 
-assertEquals(72, persistedJeff.getHeight());
-assertEquals(timestamp, (long) persistedJeff.getHeightTimestamp());
+assertEquals(72, persistedJeff.getHeightInches());
+assertEquals(timestamp, (long) persistedJeff.getHeightInchesTimestamp());
 ```
 
 Additionally, you may omit the timestamp parameter, and a timestamp will be set and reflected by the entity returned by `save`.
@@ -348,17 +348,17 @@ Invoking the setter for a column without defining the timestamp parameter will s
 final Person jeff = new Person();
 jeff.setHeight(75);
 
-assertNull(jeff.getHeightTimestamp());
+assertNull(jeff.getHeightInchesTimestamp());
 
 final long minimumExpectedTimestamp = Instant.now().toEpochMilli();
 
 final Person persistedJeff = personDao.save(jeffKey, jeff);
 
-assertEquals(75, persistedJeff.getHeight());
-assertTrue(persistedJeff.getHeightTimestamp() >= minimumExpectedTimestamp);
+assertEquals(75, persistedJeff.getHeightInches());
+assertTrue(persistedJeff.getHeightInchesTimestamp() >= minimumExpectedTimestamp);
 ```
 
-It is important to note that only the column values are checked for equality, not their associated timestamps. Therefore:
+It is important to note that only the column values are considered when checking for equality, not their associated timestamps. Therefore:
 
 ```java
 assertEquals(jeff, persistedJeff); // True, even though we did not define the timestamp ourselves
