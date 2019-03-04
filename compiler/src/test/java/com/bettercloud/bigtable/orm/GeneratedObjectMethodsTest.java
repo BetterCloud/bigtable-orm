@@ -316,6 +316,19 @@ public class GeneratedObjectMethodsTest {
                 + Arrays.toString(a.getBooleanArrayField()) + "}", a.toString());
     }
 
+    @Test
+    public void testVersionedEntityEqualsIsTrueWhenValuesAreEqualButTimestampsAreDifferent() {
+        final String stringValue = "hello";
+
+        final VersionedEntity a = new VersionedEntity();
+        a.setStringField(stringValue, 1234L);
+
+        final VersionedEntity b = new VersionedEntity();
+        b.setStringField(stringValue, 4321L);
+
+        assertEquals(a, b);
+    }
+
     @Table("equals_table")
     private class EqualsTableConfiguration {
 
@@ -371,6 +384,15 @@ public class GeneratedObjectMethodsTest {
 
             @Column(family = "family")
             private Boolean[] booleanArrayField;
+        }
+
+        @Entity(keyComponents = {
+                @KeyComponent(constant = "constant")
+        })
+        private class VersionedEntity {
+
+            @Column(family = "family", versioned = true)
+            private String stringField;
         }
     }
 }

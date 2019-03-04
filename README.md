@@ -301,6 +301,69 @@ bulbasaur.getAttacks().add(new Attack("Razor Leaf"));
 pokemonDao.save(bulbasaurKey, bulbasaur);
 ```
 
+#### Column Versioning
+
+The `@Column` annotation supports defining an optional `versioned` boolean which, when true, generates additional getters and setters for the annotated column, providing control over that column's "version" (typically a timestamp).
+
+##### Example
+
+For instance, let's assume we have a table containing people, keyed by their social security numbers, of whom we want to track heights (in inches) over time:
+
+```java
+@Table("People")
+class PeopleTableConfiguration {
+    
+    @Entity(keyComponents = {
+            @KeyComponent(name = "ssn")
+    })
+    private class Person {
+        
+        @Column(family = "measurements", versioned = true)
+        private int heightInches;
+    }
+}
+```
+
+To set the height for a person at a given timestamp, you can invoke the setter for the person's height, and provide the additional timestamp parameter:
+
+```java
+final Key<Person> jeffKey = Person.keyBuilder().ssn("000-00-0000").build();
+
+final long timestamp = Instant.now().toEpochMilli();
+
+final Person jeff = new Person();
+jeff.setHeightInches(72, timestamp);
+
+final Person persistedJeff = personDao.save(jeffKey, jeff);
+
+assertEquals(72, (int) persistedJeff.getHeightInches());
+assertEquals(timestamp, (long) persistedJeff.getHeightInchesTimestamp());
+```
+
+Additionally, you may omit the timestamp parameter, and a timestamp will be set and reflected by the entity returned by `save`.
+
+Invoking the setter for a column without defining the timestamp parameter will set the timestamp to `null` on the Java Object. A `null` timestamp is interpreted as a signal to auto-generate the column's timestamp on `save`:
+
+```java
+final Person jeff = new Person();
+jeff.setHeight(75);
+
+assertNull(jeff.getHeightInchesTimestamp());
+
+final long minimumExpectedTimestamp = Instant.now().toEpochMilli();
+
+final Person persistedJeff = personDao.save(jeffKey, jeff);
+
+assertEquals(75, (int) persistedJeff.getHeightInches());
+assertTrue(persistedJeff.getHeightInchesTimestamp() >= minimumExpectedTimestamp);
+```
+
+It is important to note that only the column values are considered when checking for equality, not their associated timestamps. Therefore:
+
+```java
+assertEquals(jeff, persistedJeff); // True, even though we did not define the timestamp ourselves
+```
+
 ### Unit Testing
 
 You should use IoC/DI frameworks, and inject the `Dao<T extends Entity>` interface, typed to your entity, whenever possible.
@@ -322,6 +385,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 
 History
 -------
+
+* **1.1.0**: Add optional column versioning capabilities. Timestamps currently only reflect the **latest** column value.
 
 * **1.0.0**: Initial public release. Support for single-row read/write/delete operations, as well as automatic entity (de)serialization.
 

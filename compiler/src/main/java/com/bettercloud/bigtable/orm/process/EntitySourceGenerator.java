@@ -206,6 +206,20 @@ class EntitySourceGenerator {
                 .addParameter(com.bettercloud.bigtable.orm.Column.class, "column", Modifier.FINAL)
                 .addParameter(Object.class, "value", Modifier.FINAL);
 
+        final MethodSpec.Builder getColumnTimestampBuilder = MethodSpec.methodBuilder("getColumnTimestamp")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(Long.class)
+                .addParameter(com.bettercloud.bigtable.orm.Column.class, "column", Modifier.FINAL)
+                .addStatement("$T.requireNonNull(column)", Objects.class);
+
+        final MethodSpec.Builder setColumnTimestampBuilder = MethodSpec.methodBuilder("setColumnTimestamp")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.VOID)
+                .addParameter(com.bettercloud.bigtable.orm.Column.class, "column", Modifier.FINAL)
+                .addParameter(TypeName.LONG, "timestamp", Modifier.FINAL);
+
         final Map<Element, Column> columnElements = Optional.ofNullable(entityElement.getEnclosedElements())
                 .orElseGet(Collections::emptyList)
                 .stream()
@@ -225,6 +239,7 @@ class EntitySourceGenerator {
         }
 
         final AtomicBoolean startedControlFlow = new AtomicBoolean(false);
+        final AtomicBoolean startedTimestampControlFlow = new AtomicBoolean(false);
 
         final Set<Integer> columnHashes = new HashSet<>();
 
@@ -261,14 +276,66 @@ class EntitySourceGenerator {
                             .build()
             );
 
-            entityBuilder.addMethod(
-                    MethodSpec.methodBuilder(setter)
-                            .addModifiers(Modifier.PUBLIC)
-                            .returns(TypeName.VOID)
-                            .addParameter(typeName, lowerCamelCase, Modifier.FINAL)
-                            .addStatement("this.$N = $N", lowerCamelCase, lowerCamelCase)
-                            .build()
-            );
+            final MethodSpec.Builder setterBuilder = MethodSpec.methodBuilder(setter)
+                    .addModifiers(Modifier.PUBLIC)
+                    .returns(TypeName.VOID)
+                    .addParameter(typeName, lowerCamelCase, Modifier.FINAL)
+                    .addStatement("this.$N = $N", lowerCamelCase, lowerCamelCase);
+
+            if (column.versioned()) {
+                final String timestampField = lowerCamelCase + "Timestamp";
+
+                entityBuilder.addField(Long.class, timestampField, Modifier.PRIVATE);
+
+                final String timestampGetter = "get" + upperCamelCase + "Timestamp";
+                final String timestampSetter = "set" + upperCamelCase + "Timestamp";
+
+                entityBuilder.addMethod(
+                        MethodSpec.methodBuilder(timestampGetter)
+                                .addModifiers(Modifier.PUBLIC)
+                                .returns(Long.class)
+                                .addStatement("return $N", timestampField)
+                                .build()
+                );
+
+                setterBuilder.addStatement("this.$N = null", timestampField);
+
+                entityBuilder.addMethod(
+                        MethodSpec.methodBuilder(setter)
+                                .addModifiers(Modifier.PUBLIC)
+                                .returns(TypeName.VOID)
+                                .addParameter(typeName, lowerCamelCase, Modifier.FINAL)
+                                .addParameter(TypeName.LONG, "timestamp", Modifier.FINAL)
+                                .addStatement("this.$N = $N", lowerCamelCase, lowerCamelCase)
+                                .addStatement("this.$N = $N", timestampField, "timestamp")
+                                .build()
+                );
+
+                entityBuilder.addMethod(
+                        MethodSpec.methodBuilder(timestampSetter)
+                                .addModifiers(Modifier.PRIVATE)
+                                .returns(TypeName.VOID)
+                                .addParameter(Long.class, "timestamp", Modifier.FINAL)
+                                .addStatement("this.$N = $N", timestampField, "timestamp")
+                                .build()
+                );
+
+                if (!startedTimestampControlFlow.getAndSet(true)) {
+                    getColumnTimestampBuilder.beginControlFlow("if ($T.$L.equals(column))", columnsClassName, upperCase)
+                            .addStatement("return $N.$L()", "entity", timestampGetter);
+
+                    setColumnTimestampBuilder.beginControlFlow("if ($T.$L.equals(column))", columnsClassName, upperCase)
+                            .addStatement("$N.$L($N)", "entity", timestampSetter, "timestamp");
+                } else {
+                    getColumnTimestampBuilder.nextControlFlow("else if ($T.$L.equals(column))", columnsClassName, upperCase)
+                            .addStatement("return $N.$L()", "entity", timestampGetter);
+
+                    setColumnTimestampBuilder.nextControlFlow("else if ($T.$L.equals(column))", columnsClassName, upperCase)
+                            .addStatement("$N.$L($N)", "entity", timestampSetter, "timestamp");
+                }
+            }
+
+            entityBuilder.addMethod(setterBuilder.build());
 
             final String columnFamily = Optional.of(column.family())
                     .filter(family -> !family.isEmpty())
@@ -324,8 +391,8 @@ class EntitySourceGenerator {
                 toStringReturnBuilder.add("$L=\" + $N", lowerCamelCase, lowerCamelCase);
             }
 
-            columnsBuilder.addEnumConstant(upperCase, TypeSpec.anonymousClassBuilder("$S, $S, new $T<$T>() { }",
-                    columnFamily, columnQualifier, TypeReference.class, typeName).build());
+            columnsBuilder.addEnumConstant(upperCase, TypeSpec.anonymousClassBuilder("$S, $S, new $T<$T>() { }, $L",
+                    columnFamily, columnQualifier, TypeReference.class, typeName, column.versioned()).build());
         }
 
         getColumnValueBuilder.nextControlFlow("else");
@@ -336,8 +403,23 @@ class EntitySourceGenerator {
         setColumnValueBuilder.addStatement("throw new $T($S)", IllegalArgumentException.class, "Unrecognized column");
         setColumnValueBuilder.endControlFlow();
 
+        if (startedTimestampControlFlow.get()) {
+            getColumnTimestampBuilder.nextControlFlow("else");
+            setColumnTimestampBuilder.nextControlFlow("else");
+        }
+
+        getColumnTimestampBuilder.addStatement("throw new $T($S)", IllegalArgumentException.class, "Invalid column");
+        setColumnTimestampBuilder.addStatement("throw new $T($S)", IllegalArgumentException.class, "Invalid column");
+
+        if (startedTimestampControlFlow.get()) {
+            getColumnTimestampBuilder.endControlFlow();
+            setColumnTimestampBuilder.endControlFlow();
+        }
+
         entityDelegateBuilder.addMethod(getColumnValueBuilder.build());
         entityDelegateBuilder.addMethod(setColumnValueBuilder.build());
+        entityDelegateBuilder.addMethod(getColumnTimestampBuilder.build());
+        entityDelegateBuilder.addMethod(setColumnTimestampBuilder.build());
 
         entityConfigurationBuilder.addMethod(MethodSpec.methodBuilder("getDelegateForEntity")
                 .addAnnotation(Override.class)
@@ -351,14 +433,17 @@ class EntitySourceGenerator {
         columnsBuilder.addField(String.class, "qualifier", Modifier.PRIVATE, Modifier.FINAL);
         columnsBuilder.addField(ParameterizedTypeName.get(ClassName.get(TypeReference.class), WildcardTypeName.subtypeOf(Object.class)),
                 "typeReference", Modifier.PRIVATE, Modifier.FINAL);
+        columnsBuilder.addField(TypeName.BOOLEAN, "isVersioned", Modifier.PRIVATE, Modifier.FINAL);
 
         columnsBuilder.addMethod(MethodSpec.constructorBuilder()
                 .addParameter(String.class, "family")
                 .addParameter(String.class, "qualifier")
                 .addParameter(ParameterizedTypeName.get(ClassName.get(TypeReference.class), WildcardTypeName.subtypeOf(Object.class)), "typeReference")
+                .addParameter(TypeName.BOOLEAN, "isVersioned")
                 .addStatement("this.$N = $N", "family", "family")
                 .addStatement("this.$N = $N", "qualifier", "qualifier")
                 .addStatement("this.$N = $N", "typeReference", "typeReference")
+                .addStatement("this.$N = $N", "isVersioned", "isVersioned")
                 .build());
 
         columnsBuilder.addMethod(MethodSpec.methodBuilder("getFamily")
@@ -380,6 +465,13 @@ class EntitySourceGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(TypeReference.class), WildcardTypeName.subtypeOf(Object.class)))
                 .addStatement("return $N", "typeReference")
+                .build());
+
+        columnsBuilder.addMethod(MethodSpec.methodBuilder("isVersioned")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addStatement("return $N", "isVersioned")
                 .build());
 
         equalsBuilder.addStatement(equalsReturnBuilder.build());

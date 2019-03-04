@@ -10,6 +10,8 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -58,6 +60,8 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
      */
     @Override
     public <K extends Key<T>> Optional<T> get(final K key) throws IOException {
+        Objects.requireNonNull(key);
+
         final T entity;
 
         final Get get = new Get(key.toBytes());
@@ -90,6 +94,10 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
                 }
 
                 delegate.setColumnValue(column, value);
+
+                if (column.isVersioned()) {
+                    delegate.setColumnTimestamp(column, cell.getTimestamp());
+                }
             }
         } else {
             entity = null;
@@ -108,16 +116,24 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
      * @param key The key of the row to persist
      * @param entity The entity which should be persisted
      * @param <K> The type of key used to persist the row
+     * @return An entity representing the value that was actually persisted, including any updated timestamps
      * @throws IOException when an error occurs while communicating with BigTable
      */
     @Override
-    public <K extends Key<T>> void save(final K key, final T entity) throws IOException {
+    public <K extends Key<T>> T save(final K key, final T entity) throws IOException {
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(entity);
+
+        final T result = entityFactory.get();
+
         final Put put = new Put(key.toBytes());
 
-        final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
+        final EntityConfiguration.EntityDelegate<T> sourceDelegate = delegateFactory.apply(entity);
+        final EntityConfiguration.EntityDelegate<T> resultDelegate = delegateFactory.apply(result);
 
         for (final Column column : columns) {
-            final Object value = delegate.getColumnValue(column);
+            final Object value = sourceDelegate.getColumnValue(column);
+            resultDelegate.setColumnValue(column, value);
 
             final byte[] bytes;
 
@@ -127,10 +143,21 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
                 bytes = null;
             }
 
-            put.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()), bytes);
+            if (column.isVersioned()) {
+                final long timestamp = Optional.ofNullable(sourceDelegate.getColumnTimestamp(column))
+                        .orElseGet(() -> Instant.now().toEpochMilli());
+
+                put.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()), timestamp, bytes);
+
+                resultDelegate.setColumnTimestamp(column, timestamp);
+            } else {
+                put.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()), bytes);
+            }
         }
 
         table.put(put);
+
+        return result;
     }
 
     /**
@@ -146,6 +173,8 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
      */
     @Override
     public <K extends Key<T>> void delete(final K key) throws IOException {
+        Objects.requireNonNull(key);
+
         final Delete delete = new Delete(key.toBytes());
 
         for (final Column column : columns) {
