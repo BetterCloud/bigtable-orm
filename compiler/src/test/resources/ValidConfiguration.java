@@ -24,5 +24,8 @@ class ValidConfiguration {
 
         @Column(family = "family", qualifier = "qualifier3", versioned = true)
         private int value3;
+
+        @Column(family = "family", qualifier = "qualifier4", versioned = true)
+        private int value4;
     }
 }

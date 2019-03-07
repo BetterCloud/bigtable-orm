@@ -132,6 +132,35 @@ public class GeneratedColumnTest {
         assertEquals(1, results.size());
     }
 
+    @Test
+    public void testMultiVersionedColumnEntityConfigurationContainsColumnsWithDefinedFamilyAndQualifierAndVersioning() {
+        final EntityConfiguration<MultiVersionedColumnEntity> entityConfiguration = EntityRegistry.getConfigurationForType(MultiVersionedColumnEntity.class);
+
+        assertNotNull(entityConfiguration);
+
+        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+
+        final List<com.bettercloud.bigtable.orm.Column> results1 = StreamSupport.stream(columns.spliterator(), false)
+                .filter(column -> EntityConfigurationTableConfiguration.MultiVersionedColumnEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
+                .filter(column -> EntityConfigurationTableConfiguration.MultiVersionedColumnEntity.COLUMN_QUALIFIER_1.equals(column.getQualifier()))
+                .filter(column -> String.class.equals(column.getTypeReference().getType()))
+                .filter(com.bettercloud.bigtable.orm.Column::isVersioned)
+                .collect(Collectors.toList());
+
+        assertNotNull(results1);
+        assertEquals(1, results1.size());
+
+        final List<com.bettercloud.bigtable.orm.Column> results2 = StreamSupport.stream(columns.spliterator(), false)
+                .filter(column -> EntityConfigurationTableConfiguration.MultiVersionedColumnEntity.COLUMN_FAMILY_2.equals(column.getFamily()))
+                .filter(column -> EntityConfigurationTableConfiguration.MultiVersionedColumnEntity.COLUMN_QUALIFIER_2.equals(column.getQualifier()))
+                .filter(column -> Integer.class.equals(column.getTypeReference().getType()))
+                .filter(com.bettercloud.bigtable.orm.Column::isVersioned)
+                .collect(Collectors.toList());
+
+        assertNotNull(results2);
+        assertEquals(1, results2.size());
+    }
+
     @Table("column_table")
     private class EntityConfigurationTableConfiguration {
 
@@ -198,6 +227,24 @@ public class GeneratedColumnTest {
 
             @Column(family = COLUMN_FAMILY, qualifier = COLUMN_QUALIFIER, versioned = true)
             private boolean column;
+        }
+
+        @Entity(keyComponents = {
+                @KeyComponent(constant = "constant")
+        })
+        private class MultiVersionedColumnEntity {
+
+            private static final String COLUMN_FAMILY_1 = "family_1";
+            private static final String COLUMN_QUALIFIER_1 = "qualifier_1";
+
+            private static final String COLUMN_FAMILY_2 = "family_2";
+            private static final String COLUMN_QUALIFIER_2 = "qualifier_2";
+
+            @Column(family = COLUMN_FAMILY_1, qualifier = COLUMN_QUALIFIER_1, versioned = true)
+            private String column1;
+
+            @Column(family = COLUMN_FAMILY_2, qualifier = COLUMN_QUALIFIER_2, versioned = true)
+            private Integer column2;
         }
     }
 }

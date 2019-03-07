@@ -85,10 +85,14 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
 
                 final Object value;
 
-                final byte[] bytes = cell.getValueArray();
+                if (cell != null) {
+                    final byte[] bytes = cell.getValueArray();
 
-                if (bytes.length > 0) {
-                    value = objectMapper.readValue(cell.getValueArray(), column.getTypeReference());
+                    if (bytes.length > 0) {
+                        value = objectMapper.readValue(bytes, column.getTypeReference());
+                    } else {
+                        value = null;
+                    }
                 } else {
                     value = null;
                 }
@@ -96,7 +100,11 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
                 delegate.setColumnValue(column, value);
 
                 if (column.isVersioned()) {
-                    delegate.setColumnTimestamp(column, cell.getTimestamp());
+                    final Long timestamp = Optional.ofNullable(cell)
+                            .map(Cell::getTimestamp)
+                            .orElse(null);
+
+                    delegate.setColumnTimestamp(column, timestamp);
                 }
             }
         } else {

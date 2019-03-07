@@ -202,6 +202,38 @@ public class BigTableEntityDaoTest {
     }
 
     @Test
+    public void testGetRetrievesNonExistentCellsAsNullValues() throws IOException {
+        final Result result = mock(Result.class);
+        when(result.isEmpty()).thenReturn(false);
+
+        final Cell stringValueCell = null;
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
+                Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
+
+        final Cell booleanValueCell = null;
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
+                Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
+
+        final Cell nestedObjectCell = null;
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
+                Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
+
+        when(table.get(any(Get.class))).thenReturn(result);
+
+        final Optional<TestEntity> retrievedEntity = testEntityDao.get(new StringKey<>("key"));
+
+        assertTrue(retrievedEntity.isPresent());
+
+        final TestEntity entity = retrievedEntity.get();
+        assertNull(entity.getStringValue());
+        assertNull(entity.getBooleanValue());
+        assertNull(entity.getNestedObject());
+    }
+
+    @Test
     public void testGetRetrievesVersionedValuesAndTimestamps() throws IOException {
         final String stringValue = "some string";
 
@@ -250,6 +282,33 @@ public class BigTableEntityDaoTest {
         assertEquals(stringValue, entity.getStringValue());
         assertEquals(booleanValue, entity.getVersionedBooleanValue());
         assertEquals(booleanValueTimestamp, (long) entity.getVersionedBooleanValueTimestamp());
+    }
+
+    @Test
+    public void testGetRetrievesNonExistentVersionedCellsAsNullValuesAndNullTimestamps() throws IOException {
+        final Result result = mock(Result.class);
+        when(result.isEmpty()).thenReturn(false);
+
+        final Cell stringValueCell = null;
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
+
+        final Cell booleanValueCell = null;
+
+        when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
+                Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
+
+        when(table.get(any(Get.class))).thenReturn(result);
+
+        final Optional<TestVersionedEntity> retrievedEntity = testVersionedEntityDao.get(new StringKey<>("key"));
+
+        assertTrue(retrievedEntity.isPresent());
+
+        final TestVersionedEntity entity = retrievedEntity.get();
+        assertNull(entity.getStringValue());
+        assertNull(entity.getVersionedBooleanValue());
+        assertNull(entity.getVersionedBooleanValueTimestamp());
     }
 
     @Test
@@ -1054,7 +1113,7 @@ public class BigTableEntityDaoTest {
         }
 
         @Override
-        public void setColumnTimestamp(final Column column, final long timestamp) {
+        public void setColumnTimestamp(final Column column, final Long timestamp) {
             throw new IllegalArgumentException();
         }
     }
@@ -1195,7 +1254,7 @@ public class BigTableEntityDaoTest {
         }
 
         @Override
-        public void setColumnTimestamp(final Column column, final long timestamp) {
+        public void setColumnTimestamp(final Column column, final Long timestamp) {
             if (TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.equals(column)) {
                 entity.setVersionedBooleanValueTimestamp(timestamp);
             } else {
