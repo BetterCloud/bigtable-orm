@@ -386,6 +386,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **1.1.1**: Read non-existent cells as `null` values (and `null` timestamps, if `versioned = true`).
+
 * **1.1.0**: Add optional column versioning capabilities. Timestamps currently only reflect the **latest** column value.
 
 * **1.0.0**: Initial public release. Support for single-row read/write/delete operations, as well as automatic entity (de)serialization.

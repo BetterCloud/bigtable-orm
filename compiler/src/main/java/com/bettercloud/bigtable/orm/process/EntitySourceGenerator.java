@@ -218,7 +218,7 @@ class EntitySourceGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(TypeName.VOID)
                 .addParameter(com.bettercloud.bigtable.orm.Column.class, "column", Modifier.FINAL)
-                .addParameter(TypeName.LONG, "timestamp", Modifier.FINAL);
+                .addParameter(Long.class, "timestamp", Modifier.FINAL);
 
         final Map<Element, Column> columnElements = Optional.ofNullable(entityElement.getEnclosedElements())
                 .orElseGet(Collections::emptyList)
