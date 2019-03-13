@@ -105,13 +105,13 @@ assertEquals("my_entity|a_string_id", key.toString());
 final MyEntity initialEntity = new MyEntity();
 initialEntity.setMyBoolean(true);
 
-myEntityDao.save(key, initialEntity);
+myEntityDao.saveAll(Collections.singletonMap(key, initialEntity));
 
 // Retrieve it and verify values
-final Optional<MyEntity> retrievedEntity1Optional = myEntityDao.get(key);
-assertTrue(retrievedEntity1Optional.isPresent());
+final Map<Key<MyEntity>, MyEntity> retrievedEntities1 = myEntityDao.getAll(Collections.singleton(key));
+assertTrue(retrievedEntities1.containsKey(key));
 
-final MyEntity retrievedEntity1 = retrievedEntity1Optional.get();
+final MyEntity retrievedEntity1 = retrievedEntities1.get(key);
 
 assertTrue(retrievedEntity1.getMyBoolean());
 assertNull(retrievedEntity1.getHello());
@@ -119,23 +119,23 @@ assertNull(retrievedEntity1.getHello());
 // Make an update and save it
 retrievedEntity1.setHello("world");
 
-myEntityDao.save(key, myEntity);
+myEntityDao.save(Collections.singletonMap(key, retrievedEntity1));
 
 // Retrieve it again and verify the update
-final Optional<MyEntity> retrievedEntity2Optional = myEntityDao.get(key);
-assertTrue(retrievedEntity2Optional.isPresent());
+final Map<Key<MyEntity>, MyEntity> retrievedEntities2 = myEntityDao.getAll(Collections.singleton(key));
+assertTrue(retrievedEntities2.containsKey(key));
 
-final MyEntity retrievedEntity2 = retrievedEntity2Optional.get();
+final MyEntity retrievedEntity2 = retrievedEntities2.get(key);
 
 assertTrue(retrievedEntity2.getMyBoolean());
-assertEquals("world", retrievedEntity2..getHello());
+assertEquals("world", retrievedEntity2.getHello());
 
 // Delete it
-myEntityDao.delete(key);
+myEntityDao.deleteAll(Collections.singleton(key));
 
 // Retrieve it again and verify that it no longer exists
-final Optional<MyEntity> retrievedEntity3Optional = myEntityDao.get(key);
-assertFalse(retrievedEntity3Optional.isPresent());
+final Map<Key<MyEntity>, MyEntity> retrievedEntities3 = myEntityDao.getAll(Collections.singleton(key));
+assertFalse(retrievedEntities3.containsKey(key));
 ```
 
 Detailed Usage
@@ -296,9 +296,10 @@ From the consuming code's perspective, there is nothing tying these values to an
 
 ```java
 final Key<Pokemon> bulbasaurKey = Pokemon.keyBuilder().id(1).build();
-final Pokemon bulbasaur = pokemonDao.get(bulbasaurKey);
+final Map<Key<Pokemon>, Pokemon> results = pokemonDao.getAll(Collections.singleton(bulbasaurKey));
+final Pokemon bulbasaur = results.get(bulbasaurKey);
 bulbasaur.getAttacks().add(new Attack("Razor Leaf"));
-pokemonDao.save(bulbasaurKey, bulbasaur);
+pokemonDao.saveAll(Collections.singletonMap(bulbasaurKey, bulbasaur));
 ```
 
 #### Column Versioning
@@ -334,7 +335,8 @@ final long timestamp = Instant.now().toEpochMilli();
 final Person jeff = new Person();
 jeff.setHeightInches(72, timestamp);
 
-final Person persistedJeff = personDao.save(jeffKey, jeff);
+final Map<Key<Person>, Person> persisted = personDao.saveAll(Collections.singletonMap(jeffKey, jeff));
+final Person persistedJeff = persisted.get(jeffKey);
 
 assertEquals(72, (int) persistedJeff.getHeightInches());
 assertEquals(timestamp, (long) persistedJeff.getHeightInchesTimestamp());
@@ -352,7 +354,8 @@ assertNull(jeff.getHeightInchesTimestamp());
 
 final long minimumExpectedTimestamp = Instant.now().toEpochMilli();
 
-final Person persistedJeff = personDao.save(jeffKey, jeff);
+final Map<Key<Person>, Person> persisted = personDao.saveAll(Collections.singletonMap(jeffKey, jeff));
+final Person persistedJeff = persisted.get(jeffKey);
 
 assertEquals(75, (int) persistedJeff.getHeightInches());
 assertTrue(persistedJeff.getHeightInchesTimestamp() >= minimumExpectedTimestamp);
@@ -385,6 +388,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 
 History
 -------
+
+* **1.2.0**: Add batch read/write/delete functionality. Deprecate single-row operations to encourage use of batch operations.
 
 * **1.1.1**: Read non-existent cells as `null` values (and `null` timestamps, if `versioned = true`).
 
