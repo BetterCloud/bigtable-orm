@@ -389,6 +389,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **1.2.1**: Implement `equals` and `hashCode` methods on `StringKey`.
+
 * **1.2.0**: Add batch read/write/delete functionality. Deprecate single-row operations to encourage use of batch operations.
 
 * **1.1.1**: Read non-existent cells as `null` values (and `null` timestamps, if `versioned = true`).
