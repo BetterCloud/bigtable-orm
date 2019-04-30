@@ -21,7 +21,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> result = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> result = entityConfiguration.getColumns();
 
         assertNotNull(result);
         assertEquals(1, StreamSupport.stream(result.spliterator(), false).count());
@@ -33,7 +33,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.SingleColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
@@ -52,7 +52,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.InferredColumnQualifierEntity.COLUMN_FAMILY.equals(column.getFamily()))
@@ -71,7 +71,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results1 = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.MultiColumnEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
@@ -100,7 +100,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.PrimitiveColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
@@ -119,7 +119,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.VersionedColumnEntity.COLUMN_FAMILY.equals(column.getFamily()))
@@ -138,7 +138,7 @@ public class GeneratedColumnTest {
 
         assertNotNull(entityConfiguration);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final List<com.bettercloud.bigtable.orm.Column> results1 = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityConfigurationTableConfiguration.MultiVersionedColumnEntity.COLUMN_FAMILY_1.equals(column.getFamily()))

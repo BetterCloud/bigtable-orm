@@ -27,13 +27,13 @@ import java.util.stream.IntStream;
 class BigTableEntityDao<T extends Entity> implements Dao<T> {
 
     private final Table table;
-    private final Iterable<Column> columns;
+    private final Iterable<? extends Column> columns;
     private final Supplier<T> entityFactory;
     private final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory;
     private final ObjectMapper objectMapper;
 
     BigTableEntityDao(final Table table,
-                      final Iterable<Column> columns,
+                      final Iterable<? extends Column> columns,
                       final Supplier<T> entityFactory,
                       final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory,
                       final ObjectMapper objectMapper) {
@@ -45,7 +45,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
     }
 
     BigTableEntityDao(final Table table,
-                      final Iterable<Column> columns,
+                      final Iterable<? extends Column> columns,
                       final Supplier<T> entityFactory,
                       final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFunction) {
         this(table, columns, entityFactory, delegateFunction, new ObjectMapper());

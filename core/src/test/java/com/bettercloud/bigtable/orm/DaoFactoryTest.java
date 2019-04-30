@@ -105,8 +105,44 @@ public class DaoFactoryTest {
         verify(connection).getTable(eq(TableName.valueOf(tableName)));
     }
 
+    @Test
+    public void testDaoForUnRegisteredEntityTypeReturnsDaoForEntityConfiguration() throws IOException {
+        final Table table = mock(Table.class);
+        when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
+
+        final Dao<UnregisteredEntity> unregisteredEntityDao = daoFactory.daoFor(UnregisteredEntity.TestConfiguration.INSTANCE, null);
+
+        assertNotNull(unregisteredEntityDao);
+
+        verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
+    }
+
     private static class UnregisteredEntity implements Entity {
-        // Nothing to see here
+
+        private static class TestConfiguration implements EntityConfiguration<UnregisteredEntity> {
+
+            private static final EntityConfiguration<UnregisteredEntity> INSTANCE = new UnregisteredEntity.TestConfiguration();
+
+            @Override
+            public String getDefaultTableName() {
+                return TABLE_NAME;
+            }
+
+            @Override
+            public Iterable<Column> getColumns() {
+                return null;
+            }
+
+            @Override
+            public Supplier<UnregisteredEntity> getEntityFactory() {
+                return null;
+            }
+
+            @Override
+            public EntityDelegate<UnregisteredEntity> getDelegateForEntity(final UnregisteredEntity entity) {
+                return null;
+            }
+        }
     }
 
     private static class RegisteredEntity extends RegisterableEntity {
