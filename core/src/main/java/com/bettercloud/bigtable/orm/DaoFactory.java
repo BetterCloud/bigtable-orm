@@ -30,23 +30,30 @@ public class DaoFactory {
 
         final EntityConfiguration<T> entityConfiguration = EntityRegistry.getConfigurationForType(entityType);
 
-        final String resolvedTableName = Optional.ofNullable(options)
-                .map(Options::getTableName)
-                .orElseGet(entityConfiguration::getDefaultTableName);
-
-        final TableName hbaseTableName = TableName.valueOf(resolvedTableName);
-
-        final Table table = connection.getTable(hbaseTableName);
-        final Iterable<Column> columns = entityConfiguration.getColumns();
-        final Supplier<T> entityFactory = entityConfiguration.getEntityFactory();
-        final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory = entityConfiguration::getDelegateForEntity;
-
-        return new BigTableEntityDao<>(table, columns, entityFactory, delegateFactory);
+        return daoFor(entityConfiguration, options);
     }
 
     @SuppressWarnings("WeakerAccess") // Public API
     public <T extends Entity> Dao<T> daoFor(final Class<T> entityType) throws IOException {
         return daoFor(entityType, null);
+    }
+
+    @SuppressWarnings("WeakerAccess") // Public API
+    public <T extends Entity> Dao<T> daoFor(final EntityConfiguration<T> entityConfiguration, final Options options) throws IOException {
+        Objects.requireNonNull(entityConfiguration);
+
+        final String resolvedTableName = Optional.ofNullable(options)
+                                                 .map(Options::getTableName)
+                                                 .orElseGet(entityConfiguration::getDefaultTableName);
+
+        final TableName hbaseTableName = TableName.valueOf(resolvedTableName);
+
+        final Table table = connection.getTable(hbaseTableName);
+        final Iterable<? extends Column> columns = entityConfiguration.getColumns();
+        final Supplier<T> entityFactory = entityConfiguration.getEntityFactory();
+        final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory = entityConfiguration::getDelegateForEntity;
+
+        return new BigTableEntityDao<>(table, columns, entityFactory, delegateFactory);
     }
 
     @SuppressWarnings("WeakerAccess") // Public API

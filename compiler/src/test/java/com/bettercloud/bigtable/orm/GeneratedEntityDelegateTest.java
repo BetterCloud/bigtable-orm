@@ -24,7 +24,7 @@ public class GeneratedEntityDelegateTest {
 
         final EntityConfiguration.EntityDelegate<EntityDelegateEntity> delegate = entityConfiguration.getDelegateForEntity(entity);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final com.bettercloud.bigtable.orm.Column stringValueColumn = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityDelegateTableConfiguration.EntityDelegateEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
@@ -71,7 +71,7 @@ public class GeneratedEntityDelegateTest {
 
         final EntityConfiguration.EntityDelegate<EntityDelegateEntity> delegate = entityConfiguration.getDelegateForEntity(entity);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final com.bettercloud.bigtable.orm.Column stringValueColumn = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityDelegateTableConfiguration.EntityDelegateEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
@@ -98,7 +98,7 @@ public class GeneratedEntityDelegateTest {
 
         final EntityConfiguration.EntityDelegate<EntityDelegateEntity> delegate = entityConfiguration.getDelegateForEntity(entity);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final com.bettercloud.bigtable.orm.Column stringValueColumn = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityDelegateTableConfiguration.EntityDelegateEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
@@ -121,7 +121,7 @@ public class GeneratedEntityDelegateTest {
 
         final EntityConfiguration.EntityDelegate<EntityDelegateEntity> delegate = entityConfiguration.getDelegateForEntity(entity);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final com.bettercloud.bigtable.orm.Column stringValueColumn = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityDelegateTableConfiguration.EntityDelegateEntity.COLUMN_FAMILY_1.equals(column.getFamily()))
@@ -144,7 +144,7 @@ public class GeneratedEntityDelegateTest {
 
         final EntityConfiguration.EntityDelegate<EntityDelegateEntity> delegate = entityConfiguration.getDelegateForEntity(entity);
 
-        final Iterable<com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
+        final Iterable<? extends com.bettercloud.bigtable.orm.Column> columns = entityConfiguration.getColumns();
 
         final com.bettercloud.bigtable.orm.Column intValueColumn = StreamSupport.stream(columns.spliterator(), false)
                 .filter(column -> EntityDelegateTableConfiguration.EntityDelegateEntity.COLUMN_FAMILY_3.equals(column.getFamily()))

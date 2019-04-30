@@ -6,7 +6,7 @@ public interface EntityConfiguration<T extends Entity> {
 
     String getDefaultTableName();
 
-    Iterable<Column> getColumns();
+    Iterable<? extends Column> getColumns();
 
     Supplier<T> getEntityFactory();
 
