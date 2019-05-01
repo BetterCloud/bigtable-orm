@@ -389,6 +389,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **1.3.0**: Improve the extensibility of the library by allowing DAO creation from an `EntityConfiguration` to support dynamically generated entities.
+
 * **1.2.1**: Implement `equals` and `hashCode` methods on `StringKey`.
 
 * **1.2.0**: Add batch read/write/delete functionality. Deprecate single-row operations to encourage use of batch operations.
