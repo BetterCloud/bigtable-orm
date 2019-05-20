@@ -1,4 +1,27 @@
+configurations {
+    integrationTestsCompile.extendsFrom testCompile
+    integrationTestsRuntime.extendsFrom testRuntime
+}
+
+sourceSets {
+    integrationTests {
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+        java.srcDir file('src/test-integration/java')
+        resources.srcDirs += file('src/test-integration/resources')
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDirs= sourceSets.integrationTests.output.classesDirs
+    classpath = sourceSets.integrationTests.runtimeClasspath
+}
+
 dependencies {
     api "com.google.cloud.bigtable:bigtable-hbase-1.x-shaded:$bigtableVersion"
     api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+
+    integrationTestsCompile "org.testcontainers:testcontainers:$testcontainers"
+    integrationTestsCompile "com.google.cloud.bigtable:bigtable-hbase-1.x-shaded:$bigtableVersion"
+    integrationTestsCompile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 }

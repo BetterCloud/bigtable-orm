@@ -13,6 +13,11 @@ public class StringKey<T extends Entity> implements Key<T> {
         this.keyString = keyString;
     }
 
+    @SuppressWarnings("WeakerAccess") // Used by generated DAO
+    public StringKey(final byte[] keyBytes) {
+        this.keyString = Bytes.toString(keyBytes);
+    }
+
     @Override
     public byte[] toBytes() {
         return Bytes.toBytes(keyString);

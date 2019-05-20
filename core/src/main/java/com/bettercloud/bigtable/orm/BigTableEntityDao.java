@@ -6,6 +6,8 @@ import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -125,46 +127,95 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
             final Result result = entry.getValue();
 
             if (!result.isEmpty()) {
-                final T entity = entityFactory.get();
-
-                final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
-
-                for (final Column column : columns) {
-                    final byte[] family = Bytes.toBytes(column.getFamily());
-                    final byte[] qualifier = Bytes.toBytes(column.getQualifier());
-
-                    final Cell cell = result.getColumnLatestCell(family, qualifier);
-
-                    final Object value;
-
-                    if (cell != null) {
-                        final byte[] bytes = cell.getValueArray();
-
-                        if (bytes.length > 0) {
-                            value = objectMapper.readValue(bytes, column.getTypeReference());
-                        } else {
-                            value = null;
-                        }
-                    } else {
-                        value = null;
-                    }
-
-                    delegate.setColumnValue(column, value);
-
-                    if (column.isVersioned()) {
-                        final Long timestamp = Optional.ofNullable(cell)
-                                .map(Cell::getTimestamp)
-                                .orElse(null);
-
-                        delegate.setColumnTimestamp(column, timestamp);
-                    }
-                }
-
-                entitiesByKey.put(entry.getKey(), entity);
+                final K key = entry.getKey();
+                final T entity = buildEntity(result);
+                entitiesByKey.put(key, entity);
             }
         }
 
         return Collections.unmodifiableMap(entitiesByKey);
+    }
+
+    /**
+     * The returned objects will contain data for each configured column only if the corresponding column actually
+     * contained data. If data is found, then it is deserialized using the configured
+     * {@link com.fasterxml.jackson.core.type.TypeReference} for that column. If no data is found, then the
+     * corresponding value for that column is set to null.
+     *
+     * @param result A row retrieved from BigTable.
+     * @return Value of type {@link T}.
+     * @throws IOException when an error occurs deserializing a column value.
+     */
+    private T buildEntity(final Result result) throws IOException {
+        final T entity = entityFactory.get();
+
+        final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
+
+        for (final Column column : columns) {
+            final byte[] family = Bytes.toBytes(column.getFamily());
+            final byte[] qualifier = Bytes.toBytes(column.getQualifier());
+
+            final Cell cell = result.getColumnLatestCell(family, qualifier);
+
+            final Object value;
+
+            if (cell != null) {
+                final byte[] bytes = cell.getValueArray();
+
+                if (bytes.length > 0) {
+                    value = objectMapper.readValue(bytes, column.getTypeReference());
+                } else {
+                    value = null;
+                }
+            } else {
+                value = null;
+            }
+
+            delegate.setColumnValue(column, value);
+
+            if (column.isVersioned()) {
+                final Long timestamp = Optional.ofNullable(cell).map(Cell::getTimestamp).orElse(null);
+
+                delegate.setColumnTimestamp(column, timestamp);
+            }
+        }
+
+        return entity;
+    }
+
+    /**
+     * If rows exists that match the scan, then the resulting Map will contain the key and a value of type {@link T} for each matching result.
+     *
+     * If the scan does not match any rows, then the resulting Map will be empty.
+     *
+     * The returned objects will contain data for each configured column only if the corresponding column actually
+     * contained data. If data is found, then it is deserialized using the configured
+     * {@link com.fasterxml.jackson.core.type.TypeReference} for that column. If no data is found, then the
+     * corresponding value for that column is set to null.
+     *
+     * @param scan The {@link Scan} that should be used for querying BigTable.
+     * @param <K> The type of the keys used to retrieve the rows.
+     * @return A Map containing pairs of keys and their corresponding values.
+     * @throws IOException when an error occurs while communicating with BigTable
+     */
+    @Override
+    public <K extends Key<T>> Map<K, T> scan(final Scan scan) throws IOException {
+        Objects.requireNonNull(scan);
+
+        final Map<K, T> entitiesByKey = new HashMap<>();
+
+        final ResultScanner scanner = table.getScanner(scan);
+        for (Result result : scanner) {
+            final K key = getRowKey(result);
+            final T entity = buildEntity(result);
+            entitiesByKey.put(key, entity);
+        }
+
+        return Collections.unmodifiableMap(entitiesByKey);
+    }
+
+    private <K extends Key<T>> K getRowKey(final Result result) {
+       return (K) new StringKey<T>(result.getRow());
     }
 
     /**

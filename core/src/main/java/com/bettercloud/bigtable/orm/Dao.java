@@ -1,5 +1,7 @@
 package com.bettercloud.bigtable.orm;
 
+import org.apache.hadoop.hbase.client.Scan;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +13,8 @@ public interface Dao<T extends Entity> {
     <K extends Key<T>> Optional<T> get(final K key) throws IOException;
 
     <K extends Key<T>> Map<K, T> getAll(final Set<K> keys) throws IOException;
+
+    <K extends Key<T>> Map<K, T> scan(final Scan scan) throws IOException;
 
     @Deprecated
     <K extends Key<T>> T save(final K key, final T entity) throws IOException;
