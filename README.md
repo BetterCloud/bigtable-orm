@@ -389,6 +389,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **1.4.0**: Add table scan capability, with starting key to start scan from and ending/last key to be scanned. Requires full key.
+
 * **1.3.0**: Improve the extensibility of the library by allowing DAO creation from an `EntityConfiguration` to support dynamically generated entities.
 
 * **1.2.1**: Implement `equals` and `hashCode` methods on `StringKey`.

@@ -6,7 +6,10 @@ import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
@@ -125,46 +128,54 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
             final Result result = entry.getValue();
 
             if (!result.isEmpty()) {
-                final T entity = entityFactory.get();
-
-                final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
-
-                for (final Column column : columns) {
-                    final byte[] family = Bytes.toBytes(column.getFamily());
-                    final byte[] qualifier = Bytes.toBytes(column.getQualifier());
-
-                    final Cell cell = result.getColumnLatestCell(family, qualifier);
-
-                    final Object value;
-
-                    if (cell != null) {
-                        final byte[] bytes = cell.getValueArray();
-
-                        if (bytes.length > 0) {
-                            value = objectMapper.readValue(bytes, column.getTypeReference());
-                        } else {
-                            value = null;
-                        }
-                    } else {
-                        value = null;
-                    }
-
-                    delegate.setColumnValue(column, value);
-
-                    if (column.isVersioned()) {
-                        final Long timestamp = Optional.ofNullable(cell)
-                                .map(Cell::getTimestamp)
-                                .orElse(null);
-
-                        delegate.setColumnTimestamp(column, timestamp);
-                    }
-                }
-
+                final T entity = delegateToEntity(result);
                 entitiesByKey.put(entry.getKey(), entity);
             }
         }
 
         return Collections.unmodifiableMap(entitiesByKey);
+    }
+
+    /**
+     * Runs a paging table scan from the provided starting key to the provided ending key,
+     * and returns a list of entities in the order returned from BigTable.
+     *
+     * Use the last returned entity to construct a new starting key for subsequent paging requests until no values are returned.
+     *
+     * @param startKey key to start scanning from (does not have to have an existing record at the location)
+     * @param startKeyInclusive whether to include result from startKey
+     * @param endKey key to end scanning on (does not have to have an existing record at the location)
+     * @param endKeyInclusive whether to include result from endKey
+     * @param numRows max number of entries to return
+     * @return A list of entities in the order that they are stored in BigTable
+     * @throws IOException when an error occurs while communicating with BigTable
+     */
+    @Override
+    public <K extends Key<T>> List<T> scan(final K startKey,
+                                           final boolean startKeyInclusive,
+                                           final K endKey,
+                                           final boolean endKeyInclusive,
+                                           final int numRows) throws IOException {
+        Objects.requireNonNull(startKey);
+        Objects.requireNonNull(endKey);
+
+        final Scan scan = new Scan();
+        scan.setFilter(new PageFilter(numRows));
+        scan.withStartRow(startKey.toBytes(), startKeyInclusive);
+        scan.withStopRow(endKey.toBytes(), endKeyInclusive);
+
+        final ResultScanner scanner = table.getScanner(scan);
+        final List<T> results = new ArrayList<>();
+
+        Result result;
+        while ((result = scanner.next()) != null) {
+            if (!result.isEmpty()) {
+                final T entity = delegateToEntity(result);
+                results.add(entity);
+            }
+        }
+
+        return Collections.unmodifiableList(results);
     }
 
     /**
@@ -310,5 +321,44 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
                 .collect(Collectors.toList());
 
         table.delete(deletes);
+    }
+
+    private T delegateToEntity(final Result result) throws IOException {
+        final T entity = entityFactory.get();
+
+        final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
+
+        for (final Column column : columns) {
+            final byte[] family = Bytes.toBytes(column.getFamily());
+            final byte[] qualifier = Bytes.toBytes(column.getQualifier());
+
+            final Cell cell = result.getColumnLatestCell(family, qualifier);
+
+            final Object value;
+
+            if (cell != null) {
+                final byte[] bytes = cell.getValueArray();
+
+                if (bytes.length > 0) {
+                    value = objectMapper.readValue(bytes, column.getTypeReference());
+                } else {
+                    value = null;
+                }
+            } else {
+                value = null;
+            }
+
+            delegate.setColumnValue(column, value);
+
+            if (column.isVersioned()) {
+                final Long timestamp = Optional.ofNullable(cell)
+                        .map(Cell::getTimestamp)
+                        .orElse(null);
+
+                delegate.setColumnTimestamp(column, timestamp);
+            }
+        }
+
+        return entity;
     }
 }
