@@ -136,7 +136,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
             final Result result = entry.getValue();
 
             if (!result.isEmpty()) {
-                final T entity = delegateToEntity(result);
+                final T entity = convertToEntity(result);
                 entitiesByKey.put(entry.getKey(), entity);
             }
         }
@@ -212,7 +212,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
         Result result;
         while ((result = scanner.next()) != null) {
             if (!result.isEmpty()) {
-                final T entity = delegateToEntity(result);
+                final T entity = convertToEntity(result);
                 results.put(new RawKey<T>(result.getRow()), entity);
             }
         }
@@ -365,7 +365,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
         table.delete(deletes);
     }
 
-    private T delegateToEntity(final Result result) throws IOException {
+    private T convertToEntity(final Result result) throws IOException {
         final T entity = entityFactory.get();
 
         final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
