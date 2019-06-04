@@ -2,6 +2,7 @@ package com.bettercloud.bigtable.orm;
 
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class StringKey<T extends Entity> implements Key<T> {
@@ -41,5 +42,10 @@ public class StringKey<T extends Entity> implements Key<T> {
     @Override
     public String toString() {
         return keyString;
+    }
+
+    @Override
+    public int compareTo(Key otherKey) {
+        return ByteBuffer.wrap(this.toBytes()).compareTo(ByteBuffer.wrap(otherKey.toBytes()));
     }
 }
