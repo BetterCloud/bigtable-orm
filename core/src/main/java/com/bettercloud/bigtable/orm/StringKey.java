@@ -42,4 +42,9 @@ public class StringKey<T extends Entity> implements Key<T> {
     public String toString() {
         return keyString;
     }
+
+    @Override
+    public int compareTo(Key otherKey) {
+        return Bytes.compareTo(this.toBytes(), otherKey.toBytes());
+    }
 }
