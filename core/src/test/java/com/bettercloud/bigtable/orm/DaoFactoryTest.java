@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.IOException;
-import java.util.function.Supplier;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,9 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class DaoFactoryTest {
-
-    private static final String TABLE_NAME = "table_name";
+public class DaoFactoryTest extends AbstractDaoFactoryTest {
 
     @Mock
     private Connection connection;
@@ -115,65 +112,5 @@ public class DaoFactoryTest {
         assertNotNull(unregisteredEntityDao);
 
         verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
-    }
-
-    private static class UnregisteredEntity implements Entity {
-
-        private static class TestConfiguration implements EntityConfiguration<UnregisteredEntity> {
-
-            private static final EntityConfiguration<UnregisteredEntity> INSTANCE = new UnregisteredEntity.TestConfiguration();
-
-            @Override
-            public String getDefaultTableName() {
-                return TABLE_NAME;
-            }
-
-            @Override
-            public Iterable<Column> getColumns() {
-                return null;
-            }
-
-            @Override
-            public Supplier<UnregisteredEntity> getEntityFactory() {
-                return null;
-            }
-
-            @Override
-            public EntityDelegate<UnregisteredEntity> getDelegateForEntity(final UnregisteredEntity entity) {
-                return null;
-            }
-        }
-    }
-
-    private static class RegisteredEntity extends RegisterableEntity {
-
-        static {
-            register(TestConfiguration.INSTANCE, RegisteredEntity.class);
-        }
-
-        private static class TestConfiguration implements EntityConfiguration<RegisteredEntity> {
-
-            private static final EntityConfiguration<RegisteredEntity> INSTANCE = new TestConfiguration();
-
-            @Override
-            public String getDefaultTableName() {
-                return TABLE_NAME;
-            }
-
-            @Override
-            public Iterable<Column> getColumns() {
-                return null;
-            }
-
-            @Override
-            public Supplier<RegisteredEntity> getEntityFactory() {
-                return null;
-            }
-
-            @Override
-            public EntityDelegate<RegisteredEntity> getDelegateForEntity(final RegisteredEntity entity) {
-                return null;
-            }
-        }
     }
 }
