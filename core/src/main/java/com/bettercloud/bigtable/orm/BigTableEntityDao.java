@@ -1,7 +1,6 @@
 package com.bettercloud.bigtable.orm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Put;
@@ -9,17 +8,9 @@ import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.client.Table;
-import org.apache.hadoop.hbase.filter.BinaryComparator;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.filter.FilterList;
-import org.apache.hadoop.hbase.filter.PageFilter;
-import org.apache.hadoop.hbase.filter.RowFilter;
-import org.apache.hadoop.hbase.util.Bytes;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,24 +26,17 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-class BigTableEntityDao<T extends Entity> implements Dao<T> {
+class BigTableEntityDao<T extends Entity> extends AbstractDao<T> implements Dao<T> {
 
     private final Table table;
-    private final Iterable<? extends Column> columns;
-    private final Supplier<T> entityFactory;
-    private final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory;
-    private final ObjectMapper objectMapper;
 
     BigTableEntityDao(final Table table,
                       final Iterable<? extends Column> columns,
                       final Supplier<T> entityFactory,
                       final Function<T, EntityConfiguration.EntityDelegate<T>> delegateFactory,
                       final ObjectMapper objectMapper) {
+        super(columns, entityFactory, delegateFactory, objectMapper);
         this.table = table;
-        this.columns = columns;
-        this.entityFactory = entityFactory;
-        this.delegateFactory = delegateFactory;
-        this.objectMapper = objectMapper;
     }
 
     BigTableEntityDao(final Table table,
@@ -112,18 +96,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
 
         final List<K> keyList = new ArrayList<>(keys);
 
-        final List<Get> gets = keyList.stream()
-                .map(Key::toBytes)
-                .map(key -> {
-                    final Get get = new Get(key);
-
-                    for (final Column column : columns) {
-                        get.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()));
-                    }
-
-                    return get;
-                })
-                .collect(Collectors.toList());
+        final List<Get> gets = keysToGets(keys);
 
         final Result[] results = table.get(gets);
 
@@ -194,17 +167,7 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
         Objects.requireNonNull(startKey);
         Objects.requireNonNull(endKey);
 
-        List<Filter> filters = new ArrayList<>();
-        filters.add(new PageFilter(numRows));
-        if (Objects.nonNull(constant) && !"".equals(constant)) {
-            filters.add(new RowFilter(CompareFilter.CompareOp.EQUAL, new BinaryComparator(constant.getBytes())));
-        }
-        FilterList filterList = new FilterList(FilterList.Operator.MUST_PASS_ALL, filters);
-
-        final Scan scan = new Scan();
-        scan.setFilter(filterList);
-        scan.withStartRow(startKey.toBytes(), startKeyInclusive);
-        scan.withStopRow(endKey.toBytes(), endKeyInclusive);
+        final Scan scan = keysToScan(startKey, startKeyInclusive, endKey, endKeyInclusive, numRows, constant);
 
         final ResultScanner scanner = table.getScanner(scan);
         final SortedMap<Key<T>, T> results = new TreeMap<>();
@@ -267,47 +230,9 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
     public <K extends Key<T>> Map<K, T> saveAll(final Map<K, T> entities) throws IOException {
         Objects.requireNonNull(entities);
 
-        final Map<K, T> results = new HashMap<>();
-        final List<Put> puts = new ArrayList<>();
-
-        for (final Map.Entry<K, T> entry : entities.entrySet()) {
-            final K key = Objects.requireNonNull(entry.getKey());
-            final T entity = Objects.requireNonNull(entry.getValue());
-
-            final T result = entityFactory.get();
-
-            final Put put = new Put(key.toBytes());
-
-            final EntityConfiguration.EntityDelegate<T> sourceDelegate = delegateFactory.apply(entity);
-            final EntityConfiguration.EntityDelegate<T> resultDelegate = delegateFactory.apply(result);
-
-            for (final Column column : columns) {
-                final Object value = sourceDelegate.getColumnValue(column);
-                resultDelegate.setColumnValue(column, value);
-
-                final byte[] bytes;
-
-                if (value != null) {
-                    bytes = objectMapper.writeValueAsBytes(value);
-                } else {
-                    bytes = null;
-                }
-
-                if (column.isVersioned()) {
-                    final long timestamp = Optional.ofNullable(sourceDelegate.getColumnTimestamp(column))
-                            .orElseGet(() -> Instant.now().toEpochMilli());
-
-                    put.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()), timestamp, bytes);
-
-                    resultDelegate.setColumnTimestamp(column, timestamp);
-                } else {
-                    put.addColumn(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()), bytes);
-                }
-            }
-
-            results.put(key, result);
-            puts.add(put);
-        }
+        final PutResultDto<K, T> putResults = entitiesToPuts(entities);
+        final Map<K, T> results = putResults.getKeyValueMap();
+        final List<Put> puts = putResults.getPuts();
 
         table.put(puts);
 
@@ -350,57 +275,8 @@ class BigTableEntityDao<T extends Entity> implements Dao<T> {
     public <K extends Key<T>> void deleteAll(final Set<K> keys) throws IOException {
         Objects.requireNonNull(keys);
 
-        final List<Delete> deletes = keys.stream()
-                .map(key -> {
-                    final Delete delete = new Delete(key.toBytes());
-
-                    for (final Column column : columns) {
-                        delete.addColumns(Bytes.toBytes(column.getFamily()), Bytes.toBytes(column.getQualifier()));
-                    }
-
-                    return delete;
-                })
-                .collect(Collectors.toList());
+        final List<Delete> deletes = keysToDeletes(keys);
 
         table.delete(deletes);
-    }
-
-    private T convertToEntity(final Result result) throws IOException {
-        final T entity = entityFactory.get();
-
-        final EntityConfiguration.EntityDelegate<T> delegate = delegateFactory.apply(entity);
-
-        for (final Column column : columns) {
-            final byte[] family = Bytes.toBytes(column.getFamily());
-            final byte[] qualifier = Bytes.toBytes(column.getQualifier());
-
-            final Cell cell = result.getColumnLatestCell(family, qualifier);
-
-            final Object value;
-
-            if (cell != null) {
-                final byte[] bytes = cell.getValueArray();
-
-                if (bytes.length > 0) {
-                    value = objectMapper.readValue(bytes, column.getTypeReference());
-                } else {
-                    value = null;
-                }
-            } else {
-                value = null;
-            }
-
-            delegate.setColumnValue(column, value);
-
-            if (column.isVersioned()) {
-                final Long timestamp = Optional.ofNullable(cell)
-                        .map(Cell::getTimestamp)
-                        .orElse(null);
-
-                delegate.setColumnTimestamp(column, timestamp);
-            }
-        }
-
-        return entity;
     }
 }

@@ -72,14 +72,17 @@ final String gcpProjectId = ...
 final String bigTableInstanceId = ...
 
 final DaoFactory daoFactory = new DaoFactory(gcpProjectId, bigTableInstanceId);
+final AsyncDaoFactory asyncDaoFactory = new AsyncDaoFactory(gcpProjectId, bigTableInstanceId);
 ```
 
 or
 
 ```java
 final Connection connection = ... // Customized BigTable or HBase connection
+final AsyncConnection asyncConnection = ... // Customized Async BigTable or HBase connection
 
 final DaoFactory daoFactory = new DaoFactory(connection);
+final AsyncDaoFactory asyncDaoFactory = new AsyncDaoFactory(asyncConnection);
 ```
 
 ### Retrieving an Entity DAO
@@ -388,6 +391,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 
 History
 -------
+
+* **1.5.0**: Add asynchronous read/write/scan/delete operations via AsyncDao and AsyncDaoFactory.
 
 * **1.4.0**: Add table scan capability, with starting key to start scan from and ending/last key to be scanned. Requires full key.
 
