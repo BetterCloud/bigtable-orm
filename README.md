@@ -392,6 +392,10 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **2.0.0**: Bumps jacksonVersion and bigtableVersion to address security vulnerabilities
+
+* **1.6.0**: Bumps jacksonVersion to address security vulnerabilities 
+
 * **1.5.0**: Add asynchronous read/write/scan/delete operations via AsyncDao and AsyncDaoFactory.
 
 * **1.4.0**: Add table scan capability, with starting key to start scan from and ending/last key to be scanned. Requires full key.
