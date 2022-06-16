@@ -92,21 +92,25 @@ abstract class AbstractBigTableEntityDaoTest {
         }
     }
 
-    enum TestColumns implements Column {
+    static class TestColumns<T> implements Column {
 
-        STRING_VALUE("stringValueFamily", "stringValueQualifier", new TypeReference<String>() {
-        }, false),
-        BOOLEAN_VALUE("booleanValueFamily", "booleanValueQualifier", new TypeReference<Boolean>() {
-        }, false),
-        NESTED_OBJECT("nestedObjectFamily", "nestedObjectQualifier", new TypeReference<TestNestedObject>() {
-        }, false);
-
+        public static final TestColumns<String> STRING_VALUE = new TestColumns<>(
+                "stringValueFamily", "stringValueQualifier", new TypeReference<String>() {}, false);
+        public static final TestColumns<Boolean> BOOLEAN_VALUE = new TestColumns<>(
+                "booleanValueFamily", "booleanValueQualifier", new TypeReference<Boolean>() {}, false);
+        public static final TestColumns<TestNestedObject> NESTED_OBJECT = new TestColumns<>(
+                "nestedObjectFamily", "nestedObjectQualifier", new TypeReference<TestNestedObject>() {}, false);
         private final String family;
         private final String qualifier;
-        private final TypeReference<?> typeReference;
+
+        private final TypeReference<T> typeReference;
         private final boolean isVersioned;
 
-        TestColumns(final String family, final String qualifier, final TypeReference<?> typeReference, final boolean isVersioned) {
+        TestColumns(
+                final String family,
+                final String qualifier,
+                final TypeReference<T> typeReference,
+                final boolean isVersioned) {
             this.family = family;
             this.qualifier = qualifier;
             this.typeReference = typeReference;
@@ -125,6 +129,10 @@ abstract class AbstractBigTableEntityDaoTest {
 
         @Override
         public TypeReference<?> getTypeReference() {
+            return typeReference;
+        }
+
+        public TypeReference<T> getTestTypeReference() {
             return typeReference;
         }
 
@@ -237,19 +245,19 @@ abstract class AbstractBigTableEntityDaoTest {
         }
     }
 
-    enum TestVersionedColumns implements Column {
+    static class TestVersionedColumns<T> implements Column {
 
-        STRING_VALUE("stringValueFamily", "stringValueQualifier", new TypeReference<String>() {
-        }, false),
-        VERSIONED_BOOLEAN_VALUE("versionedBooleanValueFamily", "versionedBooleanValueQualifier", new TypeReference<Boolean>() {
-        }, true);
+        public static final TestColumns<String> STRING_VALUE = new TestColumns<>(
+                "stringValueFamily", "stringValueQualifier", new TypeReference<String>() {}, false);
+        public static final TestColumns<Boolean> VERSIONED_BOOLEAN_VALUE = new TestColumns<>(
+                "versionedBooleanValueFamily", "versionedBooleanValueQualifier", new TypeReference<Boolean>() {}, true);
 
         private final String family;
         private final String qualifier;
-        private final TypeReference<?> typeReference;
+        private final TypeReference<T> typeReference;
         private final boolean isVersioned;
 
-        TestVersionedColumns(final String family, final String qualifier, final TypeReference<?> typeReference, final boolean isVersioned) {
+        TestVersionedColumns(final String family, final String qualifier, final TypeReference<T> typeReference, final boolean isVersioned) {
             this.family = family;
             this.qualifier = qualifier;
             this.typeReference = typeReference;
@@ -268,6 +276,10 @@ abstract class AbstractBigTableEntityDaoTest {
 
         @Override
         public TypeReference<?> getTypeReference() {
+            return typeReference;
+        }
+
+        public TypeReference<T> getTestTypeReference() {
             return typeReference;
         }
 
