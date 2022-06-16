@@ -1,4 +1,7 @@
 dependencies {
-    api "com.google.cloud.bigtable:bigtable-hbase-2.x-shaded:$bigtableVersion"
+    api ("com.google.cloud.bigtable:bigtable-hbase-2.x:$bigtableVersion") {
+        exclude group: 'org.apache.hbase', module: 'hbase-shaded-client'
+    }
     api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    api "org.apache.hbase:hbase-client:2.4.12"
 }
