@@ -392,6 +392,8 @@ All changes are expected to be tested thoroughly prior to submission. Any untest
 History
 -------
 
+* **3.0.0**: Bumps jacksonVersion and bigtableVersion to address security vulnerabilities, removes hbase-shaded-client and pulls in the standard hbase-client
+
 * **2.0.0**: Bumps jacksonVersion and bigtableVersion to address security vulnerabilities
 
 * **1.6.0**: Bumps jacksonVersion to address security vulnerabilities 
