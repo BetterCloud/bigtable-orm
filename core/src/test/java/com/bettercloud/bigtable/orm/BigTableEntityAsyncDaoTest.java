@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.filter.FilterList;
 import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.filter.RowFilter;
 import org.apache.hadoop.hbase.util.Bytes;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -54,13 +55,13 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
     @Mock
     private AsyncTable<?> table;
 
-    private final List<Column> columns = Arrays.asList(TestColumns.values());
+    private final List<Column> columns = Lists.newArrayList(TestColumns.BOOLEAN_VALUE, TestColumns.STRING_VALUE, TestColumns.NESTED_OBJECT);
 
     private final Supplier<TestEntity> entityFactory = TestEntity::new;
 
     private final Function<TestEntity, EntityConfiguration.EntityDelegate<TestEntity>> delegateFactory = TestDelegate::new;
 
-    private final List<Column> versionedColumns = Arrays.asList(TestVersionedColumns.values());
+    private final List<Column> versionedColumns = Lists.newArrayList(TestVersionedColumns.STRING_VALUE, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE);
 
     private final Supplier<TestVersionedEntity> versionedEntityFactory = TestVersionedEntity::new;
 
@@ -162,7 +163,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -176,7 +177,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -190,7 +191,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.get(any(Get.class))).thenReturn(CompletableFuture.completedFuture(result));
@@ -227,7 +228,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -241,7 +242,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -253,7 +254,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.get(any(Get.class))).thenReturn(CompletableFuture.completedFuture(result));
@@ -319,7 +320,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -334,7 +335,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         when(table.get(any(Get.class))).thenReturn(CompletableFuture.completedFuture(result));
@@ -668,7 +669,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -682,7 +683,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -696,7 +697,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.get(anyList())).thenReturn(Collections.singletonList(CompletableFuture.completedFuture(result)));
@@ -739,7 +740,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell1);
 
-        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue1);
 
         final Cell booleanValueCell1 = mock(Cell.class);
@@ -753,7 +754,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell1);
 
-        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue1);
 
         final Cell nestedObjectCell1 = mock(Cell.class);
@@ -767,7 +768,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell1);
 
-        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject1);
 
         final String stringValue2 = "some other string";
@@ -791,7 +792,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell2);
 
-        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue2);
 
         final Cell booleanValueCell2 = mock(Cell.class);
@@ -805,7 +806,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell2);
 
-        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue2);
 
         final Cell nestedObjectCell2 = mock(Cell.class);
@@ -819,7 +820,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell2);
 
-        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject2);
 
         final Key<TestEntity> key1 = new StringKey<>("key1");
@@ -880,7 +881,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -894,7 +895,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -906,7 +907,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.get(anyList())).thenReturn(Collections.singletonList(CompletableFuture.completedFuture(result)));
@@ -983,7 +984,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -998,7 +999,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         when(table.get(anyList())).thenReturn(Collections.singletonList(CompletableFuture.completedFuture(result)));
@@ -1370,7 +1371,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -1384,7 +1385,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -1398,7 +1399,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.getAll(anyList())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -1441,7 +1442,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell1);
 
-        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue1);
 
         final Cell booleanValueCell1 = mock(Cell.class);
@@ -1455,7 +1456,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell1);
 
-        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue1);
 
         final Cell nestedObjectCell1 = mock(Cell.class);
@@ -1469,7 +1470,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell1);
 
-        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject1);
 
         final String stringValue2 = "some other string";
@@ -1493,7 +1494,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell2);
 
-        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue2);
 
         final Cell booleanValueCell2 = mock(Cell.class);
@@ -1507,7 +1508,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell2);
 
-        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue2);
 
         final Cell nestedObjectCell2 = mock(Cell.class);
@@ -1521,7 +1522,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell2);
 
-        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject2);
 
         final Key<TestEntity> key1 = new StringKey<>("key1");
@@ -1584,7 +1585,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -1598,7 +1599,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -1610,7 +1611,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.getAll(anyList())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -1688,7 +1689,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -1703,7 +1704,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         when(table.getAll(anyList())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2050,7 +2051,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenThrow(new IOException());
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2064,7 +2065,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2078,7 +2079,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(any(Scan.class))).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2123,7 +2124,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2137,7 +2138,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2151,7 +2152,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(any(Scan.class))).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2197,7 +2198,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell1);
 
-        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes1, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue1);
 
         final Cell booleanValueCell1 = mock(Cell.class);
@@ -2211,7 +2212,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell1);
 
-        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes1, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue1);
 
         final Cell nestedObjectCell1 = mock(Cell.class);
@@ -2225,7 +2226,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result1.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell1);
 
-        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes1, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject1);
 
         final String stringValue2 = "some other string";
@@ -2250,7 +2251,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell2);
 
-        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes2, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue2);
 
         final Cell booleanValueCell2 = mock(Cell.class);
@@ -2264,7 +2265,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell2);
 
-        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes2, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue2);
 
         final Cell nestedObjectCell2 = mock(Cell.class);
@@ -2278,7 +2279,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result2.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell2);
 
-        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes2, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject2);
 
         when(table.scanAll(any(Scan.class))).thenReturn(CompletableFuture.completedFuture(Arrays.asList(result1, result2)));
@@ -2327,7 +2328,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2341,7 +2342,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2353,7 +2354,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(any(Scan.class))).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2434,7 +2435,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestVersionedColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2449,7 +2450,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestVersionedColumns.VERSIONED_BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         when(table.scanAll(any(Scan.class))).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2776,7 +2777,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2790,7 +2791,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2804,7 +2805,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(scanArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2854,7 +2855,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2868,7 +2869,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2882,7 +2883,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(scanArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
@@ -2927,7 +2928,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.STRING_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.STRING_VALUE.getQualifier()))).thenReturn(stringValueCell);
 
-        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTypeReference()))
+        when(objectMapper.readValue(stringValueBytes, TestColumns.STRING_VALUE.getTestTypeReference()))
                 .thenReturn(stringValue);
 
         final Cell booleanValueCell = mock(Cell.class);
@@ -2941,7 +2942,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getFamily()),
                 Bytes.toBytes(TestColumns.BOOLEAN_VALUE.getQualifier()))).thenReturn(booleanValueCell);
 
-        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTypeReference()))
+        when(objectMapper.readValue(booleanValueBytes, TestColumns.BOOLEAN_VALUE.getTestTypeReference()))
                 .thenReturn(booleanValue);
 
         final Cell nestedObjectCell = mock(Cell.class);
@@ -2955,7 +2956,7 @@ public class BigTableEntityAsyncDaoTest extends AbstractBigTableEntityDaoTest {
         when(result.getColumnLatestCell(Bytes.toBytes(TestColumns.NESTED_OBJECT.getFamily()),
                 Bytes.toBytes(TestColumns.NESTED_OBJECT.getQualifier()))).thenReturn(nestedObjectCell);
 
-        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTypeReference()))
+        when(objectMapper.readValue(nestedObjectBytes, TestColumns.NESTED_OBJECT.getTestTypeReference()))
                 .thenReturn(nestedObject);
 
         when(table.scanAll(scanArgumentCaptor.capture())).thenReturn(CompletableFuture.completedFuture(Collections.singletonList(result)));
