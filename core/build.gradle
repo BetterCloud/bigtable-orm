@@ -3,5 +3,5 @@ dependencies {
         exclude group: 'org.apache.hbase', module: 'hbase-shaded-client'
     }
     api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-    api "org.apache.hbase:hbase-client:2.4.12"
+    api "org.apache.hbase:hbase-client:$hbaseClientVersion"
 }
