@@ -19,8 +19,13 @@ if (!hasProperty('nexusPassword')) {
     ext.nexusPassword = ''
 }
 
+repositories {
+    mavenLocal()
+}
+
 allprojects {
     apply plugin: 'maven'
+    apply plugin: 'maven-publish'
     apply plugin: 'java-library'
 
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -60,6 +65,14 @@ subprojects {
     signing {
         required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
     }
 
     uploadArchives {
