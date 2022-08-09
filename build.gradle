@@ -1,5 +1,5 @@
 group = 'com.bettercloud'
-version = '3.1.0'
+version = '3.2.0'
 
 ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
@@ -24,15 +24,22 @@ repositories {
 }
 
 allprojects {
+    apply plugin: 'java-library'
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
-    apply plugin: 'java-library'
 
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
     
     repositories {
         mavenCentral()
+    }
+
+    configurations.all {
+        exclude group: 'log4j'
+        // see https://www.slf4j.org/codes.html#log4jDelegationLoop
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+        exclude group: 'org.slf4j', module: 'slf4j-reload4j'
     }
 }
 
@@ -44,6 +51,15 @@ subprojects {
     version = rootProject.version
 
     dependencies {
+        constraints {
+            implementation('net.minidev:json-smart:2.4.8') {
+                because('CWE-400, CVE-2021-27568 - Denial of Service')
+            }
+        }
+
+        // see https://www.slf4j.org/legacy.html
+        implementation "org.slf4j:log4j-over-slf4j:$log4jOverSlf4jVersion"
+
         testImplementation "junit:junit:$junitVersion"
         testImplementation "org.mockito:mockito-core:$mockitoVersion"
     }
