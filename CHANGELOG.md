@@ -1,6 +1,8 @@
 History
 -------
 
+* **3.2.0**: Updating dependencies to fix Snyk issues
+
 * **3.1.0**: Bumps hbase-client version to 2.4.13
 
 * **3.0.0**: Bumps jacksonVersion and bigtableVersion to address security vulnerabilities, removes hbase-shaded-client and pulls in the standard hbase-client

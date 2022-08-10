@@ -3,5 +3,15 @@ dependencies {
         exclude group: 'org.apache.hbase', module: 'hbase-shaded-client'
     }
     api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
-    api "org.apache.hbase:hbase-client:$hbaseClientVersion"
+    api ("org.apache.hbase:hbase-client:$hbaseClientVersion") {
+        exclude group: 'org.apache.hadoop', module: 'hadoop-common'
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+    }
+    api ("org.apache.hadoop:hadoop-common:$hadoopCommonVersion") {
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+    }
+    implementation ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
+        exclude group: 'io.netty', module: 'netty-handler'
+    }
+    implementation "io.netty:netty-handler:$nettyVersion"
 }
