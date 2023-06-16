@@ -1,7 +1,14 @@
 History
 -------
 
-* **3.2.0**: Updating dependencies to fix Snyk issues
+* **4.0.0**:
+  - Updated Gradle to 6.9 
+  - Updated Java to 11
+  - Updated dependencies
+
+* **3.3.0**: Updated hadoop-common from 2.x to 3.x to fix Snyk issues
+
+* **3.2.0**: Updated dependencies to fix Snyk issues
 
 * **3.1.0**: Bumps hbase-client version to 2.4.13
 
