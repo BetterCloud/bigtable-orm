@@ -1,6 +1,8 @@
 History
 -------
 
+* **3.3.0**: Updating dependencies to fix SCA issues, updated to Java 11
+
 * **3.2.0**: Updating dependencies to fix Snyk issues
 
 * **3.1.0**: Bumps hbase-client version to 2.4.13

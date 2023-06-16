@@ -1,5 +1,5 @@
 group = 'com.bettercloud'
-version = '3.3.0'
+version = '3.4.0'
 
 ext.isReleaseVersion = !version.endsWith('SNAPSHOT')
 
@@ -28,14 +28,14 @@ allprojects {
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
 
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     
     repositories {
         mavenCentral()
     }
 
-    configurations.all {
+    configurations.configureEach {
         exclude group: 'log4j'
         // see https://www.slf4j.org/codes.html#log4jDelegationLoop
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
@@ -142,5 +142,5 @@ uploadArchives {
 }
 
 wrapper {
-    gradleVersion = '5.2.1'
+    gradleVersion = '6.8.3'
 }

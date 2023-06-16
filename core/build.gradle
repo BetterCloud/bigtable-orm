@@ -1,3 +1,8 @@
+configurations.configureEach {
+    resolutionStrategy.force 'org.apache.hadoop:hadoop-common:2.10.2', 'org.apache.hadoop:hadoop-common:3.3.5'
+    resolutionStrategy.force 'org.apache.avro:avro:1.7.7', 'org.apache.avro:avro:1.11.1'
+}
+
 dependencies {
     api ("com.google.cloud.bigtable:bigtable-hbase-2.x:$bigtableVersion") {
         exclude group: 'org.apache.hbase', module: 'hbase-shaded-client'
