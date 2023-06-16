@@ -1,14 +1,5 @@
 package com.bettercloud.bigtable.orm;
 
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.Table;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-import java.io.IOException;
-
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -16,101 +7,115 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import java.io.IOException;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Table;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+
 public class DaoFactoryTest extends AbstractDaoFactoryTest {
 
-    @Mock
-    private Connection connection;
+  @Mock private Connection connection;
 
-    private DaoFactory daoFactory;
+  private DaoFactory daoFactory;
 
-    @Before
-    public void setup() {
-        initMocks(this);
+  @Before
+  public void setup() {
+    initMocks(this);
 
-        daoFactory = new DaoFactory(connection);
-    }
+    daoFactory = new DaoFactory(connection);
+  }
 
-    @Test(expected = NullPointerException.class)
-    public void testDaoForNullEntityTypeThrowsNullPointerException() throws IOException {
-        daoFactory.daoFor(null);
-    }
+  @Test(expected = NullPointerException.class)
+  public void testDaoForNullEntityTypeThrowsNullPointerException() throws IOException {
+    daoFactory.daoFor(null);
+  }
 
-    @Test(expected = IllegalStateException.class)
-    public void testDaoForUnregisteredEntityTypeThrowsIllegalStateException() throws IOException {
-        daoFactory.daoFor(UnregisteredEntity.class);
-    }
+  @Test(expected = IllegalStateException.class)
+  public void testDaoForUnregisteredEntityTypeThrowsIllegalStateException() throws IOException {
+    daoFactory.daoFor(UnregisteredEntity.class);
+  }
 
-    @Test
-    public void testDaoForRegisteredEntityTypeReturnsDaoForEntity() throws IOException {
-        final Table table = mock(Table.class);
-        when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
+  @Test
+  public void testDaoForRegisteredEntityTypeReturnsDaoForEntity() throws IOException {
+    final Table table = mock(Table.class);
+    when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
 
-        final Dao<RegisteredEntity> registeredEntityDao = daoFactory.daoFor(RegisteredEntity.class);
+    final Dao<RegisteredEntity> registeredEntityDao = daoFactory.daoFor(RegisteredEntity.class);
 
-        assertNotNull(registeredEntityDao);
+    assertNotNull(registeredEntityDao);
 
-        verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
-    }
+    verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
+  }
 
-    @Test
-    public void testDaoForRegisteredEntityTypeWithNullOptionsReturnsDaoForEntityUsingDefaultTableName() throws IOException {
-        final DaoFactory.Options options = null;
+  @Test
+  public void
+      testDaoForRegisteredEntityTypeWithNullOptionsReturnsDaoForEntityUsingDefaultTableName()
+          throws IOException {
+    final DaoFactory.Options options = null;
 
-        final Table table = mock(Table.class);
-        when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
+    final Table table = mock(Table.class);
+    when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
 
-        final Dao<RegisteredEntity> registeredEntityDao = daoFactory.daoFor(RegisteredEntity.class, options);
+    final Dao<RegisteredEntity> registeredEntityDao =
+        daoFactory.daoFor(RegisteredEntity.class, options);
 
-        assertNotNull(registeredEntityDao);
+    assertNotNull(registeredEntityDao);
 
-        verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
-    }
+    verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
+  }
 
-    @Test
-    public void testDaoForRegisteredEntityTypeWithNullTableNameReturnsDaoForEntityUsingDefaultTableName() throws IOException {
-        final String tableName = null;
+  @Test
+  public void
+      testDaoForRegisteredEntityTypeWithNullTableNameReturnsDaoForEntityUsingDefaultTableName()
+          throws IOException {
+    final String tableName = null;
 
-        final DaoFactory.Options options = DaoFactory.optionsBuilder()
-                .setTableName(tableName)
-                .build();
+    final DaoFactory.Options options = DaoFactory.optionsBuilder().setTableName(tableName).build();
 
-        final Table table = mock(Table.class);
-        when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
+    final Table table = mock(Table.class);
+    when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
 
-        final Dao<RegisteredEntity> registeredEntityDao = daoFactory.daoFor(RegisteredEntity.class, options);
+    final Dao<RegisteredEntity> registeredEntityDao =
+        daoFactory.daoFor(RegisteredEntity.class, options);
 
-        assertNotNull(registeredEntityDao);
+    assertNotNull(registeredEntityDao);
 
-        verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
-    }
+    verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
+  }
 
-    @Test
-    public void testDaoForRegisteredEntityTypeWithCustomTableNameReturnsDaoForEntityUsingDefinedTableName() throws IOException {
-        final String tableName = "a_different_table_name";
+  @Test
+  public void
+      testDaoForRegisteredEntityTypeWithCustomTableNameReturnsDaoForEntityUsingDefinedTableName()
+          throws IOException {
+    final String tableName = "a_different_table_name";
 
-        final DaoFactory.Options options = DaoFactory.optionsBuilder()
-                .setTableName(tableName)
-                .build();
+    final DaoFactory.Options options = DaoFactory.optionsBuilder().setTableName(tableName).build();
 
-        final Table table = mock(Table.class);
-        when(connection.getTable(TableName.valueOf(tableName))).thenReturn(table);
+    final Table table = mock(Table.class);
+    when(connection.getTable(TableName.valueOf(tableName))).thenReturn(table);
 
-        final Dao<RegisteredEntity> registeredEntityDao = daoFactory.daoFor(RegisteredEntity.class, options);
+    final Dao<RegisteredEntity> registeredEntityDao =
+        daoFactory.daoFor(RegisteredEntity.class, options);
 
-        assertNotNull(registeredEntityDao);
+    assertNotNull(registeredEntityDao);
 
-        verify(connection).getTable(eq(TableName.valueOf(tableName)));
-    }
+    verify(connection).getTable(eq(TableName.valueOf(tableName)));
+  }
 
-    @Test
-    public void testDaoForUnRegisteredEntityTypeReturnsDaoForEntityConfiguration() throws IOException {
-        final Table table = mock(Table.class);
-        when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
+  @Test
+  public void testDaoForUnRegisteredEntityTypeReturnsDaoForEntityConfiguration()
+      throws IOException {
+    final Table table = mock(Table.class);
+    when(connection.getTable(TableName.valueOf(TABLE_NAME))).thenReturn(table);
 
-        final Dao<UnregisteredEntity> unregisteredEntityDao = daoFactory.daoFor(UnregisteredEntity.TestConfiguration.INSTANCE, null);
+    final Dao<UnregisteredEntity> unregisteredEntityDao =
+        daoFactory.daoFor(UnregisteredEntity.TestConfiguration.INSTANCE, null);
 
-        assertNotNull(unregisteredEntityDao);
+    assertNotNull(unregisteredEntityDao);
 
-        verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
-    }
+    verify(connection).getTable(eq(TableName.valueOf(TABLE_NAME)));
+  }
 }

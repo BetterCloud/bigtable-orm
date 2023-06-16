@@ -4,11 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 public interface Column {
 
-    String getFamily();
+  String getFamily();
 
-    String getQualifier();
+  String getQualifier();
 
-    TypeReference<?> getTypeReference();
+  TypeReference<?> getTypeReference();
 
-    boolean isVersioned();
+  boolean isVersioned();
 }

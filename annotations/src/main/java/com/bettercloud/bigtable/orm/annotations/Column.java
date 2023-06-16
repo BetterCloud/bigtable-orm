@@ -9,24 +9,25 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Column {
 
-    /**
-     * Required.
-     *
-     * @return The column family
-     */
-    String family();
+  /**
+   * Required.
+   *
+   * @return The column family
+   */
+  String family();
 
-    /**
-     * When undefined, then the name of the annotated field is used.
-     *
-     * @return The column qualifier
-     */
-    String qualifier() default "";
+  /**
+   * When undefined, then the name of the annotated field is used.
+   *
+   * @return The column qualifier
+   */
+  String qualifier() default "";
 
-    /**
-     * When true, then additional getters and setters will be generated for maintaining the column's version.
-     *
-     * @return Whether the column should support versioning
-     */
-    boolean versioned() default false;
+  /**
+   * When true, then additional getters and setters will be generated for maintaining the column's
+   * version.
+   *
+   * @return Whether the column should support versioning
+   */
+  boolean versioned() default false;
 }

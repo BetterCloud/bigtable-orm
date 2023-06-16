@@ -1,108 +1,104 @@
 package com.bettercloud.bigtable.orm;
 
-import org.junit.Test;
-
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.Test;
+
 public class RawKeyTest {
 
-    @Test
-    public void testToBytesReturnsByteValueOfKey() {
-        final byte[] rawKey = new byte[] {
-                1, 2, 3
-        };
+  @Test
+  public void testToBytesReturnsByteValueOfKey() {
+    final byte[] rawKey = new byte[] {1, 2, 3};
 
-        final Key<Entity> key = new RawKey<>(rawKey);
+    final Key<Entity> key = new RawKey<>(rawKey);
 
-        assertArrayEquals(rawKey, key.toBytes());
-    }
+    assertArrayEquals(rawKey, key.toBytes());
+  }
 
-    @Test
-    public void testKeyIsCopiedOnConstruction() {
-        final byte[] rawKey = new byte[] {
-                1, 2, 3
-        };
+  @Test
+  public void testKeyIsCopiedOnConstruction() {
+    final byte[] rawKey = new byte[] {1, 2, 3};
 
-        final Key<Entity> key = new RawKey<>(rawKey);
+    final Key<Entity> key = new RawKey<>(rawKey);
 
-        rawKey[2] = 4;
+    rawKey[2] = 4;
 
-        assertNotEquals(rawKey, key.toBytes());
-    }
+    assertNotEquals(rawKey, key.toBytes());
+  }
 
-    @Test
-    public void testEqualsReturnsTrueWhenKeysAreEqual() {
-        final Key<Entity> a = new RawKey<>("goodbye".getBytes());
-        final Key<Entity> b = new RawKey<>("goodbye".getBytes());
+  @Test
+  public void testEqualsReturnsTrueWhenKeysAreEqual() {
+    final Key<Entity> a = new RawKey<>("goodbye".getBytes());
+    final Key<Entity> b = new RawKey<>("goodbye".getBytes());
 
-        assertEquals(a, b);
-    }
+    assertEquals(a, b);
+  }
 
-    @Test
-    public void testHashCodeReturnsDifferentValuesWhenKeysAreNotEqual() {
-        final Key<Entity> a = new RawKey<>("hello".getBytes());
-        final Key<Entity> b = new RawKey<>("world".getBytes());
+  @Test
+  public void testHashCodeReturnsDifferentValuesWhenKeysAreNotEqual() {
+    final Key<Entity> a = new RawKey<>("hello".getBytes());
+    final Key<Entity> b = new RawKey<>("world".getBytes());
 
-        assertNotEquals(a.hashCode(), b.hashCode());
-    }
+    assertNotEquals(a.hashCode(), b.hashCode());
+  }
 
-    @Test
-    public void testHashCodeReturnsEqualValuesWhenKeysAreEqual() {
-        final Key<Entity> a = new RawKey<>("goodbye".getBytes());
-        final Key<Entity> b = new RawKey<>("goodbye".getBytes());
+  @Test
+  public void testHashCodeReturnsEqualValuesWhenKeysAreEqual() {
+    final Key<Entity> a = new RawKey<>("goodbye".getBytes());
+    final Key<Entity> b = new RawKey<>("goodbye".getBytes());
 
-        assertEquals(a.hashCode(), b.hashCode());
-    }
+    assertEquals(a.hashCode(), b.hashCode());
+  }
 
-    @Test
-    public void testCompareToReturnsZeroValueWhenByteValueOfKeyIsEqualToOther() {
-        final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
-        final Key<Entity> b = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
+  @Test
+  public void testCompareToReturnsZeroValueWhenByteValueOfKeyIsEqualToOther() {
+    final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
+    final Key<Entity> b = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
 
-        assertEquals(0, a.compareTo(b));
-    }
+    assertEquals(0, a.compareTo(b));
+  }
 
-    @Test
-    public void testCompareToReturnsPositiveValueWhenByteValueOfKeyIsGreaterThanOther() {
-        final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
-        final Key<Entity> b = new RawKey<>("goodbye".getBytes()); // [103][111][111][100][98][121][101]
+  @Test
+  public void testCompareToReturnsPositiveValueWhenByteValueOfKeyIsGreaterThanOther() {
+    final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
+    final Key<Entity> b = new RawKey<>("goodbye".getBytes()); // [103][111][111][100][98][121][101]
 
-        // Note: even though goodbye is longer 'g' [103] comes before/is less than 'h' [104]
-        assertTrue(0 < a.compareTo(b)); // hello is greater than goodbye
-    }
+    // Note: even though goodbye is longer 'g' [103] comes before/is less than 'h' [104]
+    assertTrue(0 < a.compareTo(b)); // hello is greater than goodbye
+  }
 
-    @Test
-    public void testCompareToReturnsNegativeValueWhenByteValueOfKeyIsLessThanOther() {
-        final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
-        final Key<Entity> b = new RawKey<>("hello there".getBytes()); // [104][101][108][108][111][32][116][104][101][114][101]
+  @Test
+  public void testCompareToReturnsNegativeValueWhenByteValueOfKeyIsLessThanOther() {
+    final Key<Entity> a = new RawKey<>("hello".getBytes()); // [104][101][108][108][111]
+    final Key<Entity> b =
+        new RawKey<>(
+            "hello there".getBytes()); // [104][101][108][108][111][32][116][104][101][114][101]
 
-        // Note: on equal byte arrays the longer is greater
-        assertTrue(0 > a.compareTo(b)); // hello is less than hello there
-    }
+    // Note: on equal byte arrays the longer is greater
+    assertTrue(0 > a.compareTo(b)); // hello is less than hello there
+  }
 
-    @Test
-    public void testHashMapReturnsValueAtKey() {
-        final byte[] key = "key".getBytes();
+  @Test
+  public void testHashMapReturnsValueAtKey() {
+    final byte[] key = "key".getBytes();
 
-        final Key<Entity> putKey = new RawKey<>(key);
+    final Key<Entity> putKey = new RawKey<>(key);
 
-        final Map<Key<Entity>, String> map = new HashMap<>();
+    final Map<Key<Entity>, String> map = new HashMap<>();
 
-        final String value = "some value";
+    final String value = "some value";
 
-        map.put(putKey, value);
+    map.put(putKey, value);
 
-        final Key<Entity> getKey = new RawKey<>(key);
+    final Key<Entity> getKey = new RawKey<>(key);
 
-        final String result = map.get(getKey);
+    final String result = map.get(getKey);
 
-        assertEquals(value, result);
-    }
+    assertEquals(value, result);
+  }
 }

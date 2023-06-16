@@ -4,22 +4,22 @@ import java.util.function.Supplier;
 
 public interface EntityConfiguration<T extends Entity> {
 
-    String getDefaultTableName();
+  String getDefaultTableName();
 
-    Iterable<? extends Column> getColumns();
+  Iterable<? extends Column> getColumns();
 
-    Supplier<T> getEntityFactory();
+  Supplier<T> getEntityFactory();
 
-    EntityDelegate<T> getDelegateForEntity(final T entity);
+  EntityDelegate<T> getDelegateForEntity(final T entity);
 
-    interface EntityDelegate<T extends Entity> {
+  interface EntityDelegate<T extends Entity> {
 
-        Object getColumnValue(final Column column);
+    Object getColumnValue(final Column column);
 
-        void setColumnValue(final Column column, final Object value);
+    void setColumnValue(final Column column, final Object value);
 
-        Long getColumnTimestamp(final Column column);
+    Long getColumnTimestamp(final Column column);
 
-        void setColumnTimestamp(final Column column, final Long timestamp);
-    }
+    void setColumnTimestamp(final Column column, final Long timestamp);
+  }
 }

@@ -9,12 +9,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Table {
 
-    /**
-     * The default name of the table in which all entities defined under the annotated type will reside.
-     *
-     * Required.
-     *
-     * @return The table name
-     */
-    String value();
+  /**
+   * The default name of the table in which all entities defined under the annotated type will
+   * reside.
+   *
+   * <p>Required.
+   *
+   * @return The table name
+   */
+  String value();
 }
