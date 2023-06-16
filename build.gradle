@@ -35,7 +35,7 @@ allprojects {
         mavenCentral()
     }
 
-    configurations.all {
+    configurations.configureEach {
         exclude group: 'log4j'
         // see https://www.slf4j.org/codes.html#log4jDelegationLoop
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'

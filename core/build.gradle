@@ -1,17 +1,35 @@
 dependencies {
     api ("com.google.cloud.bigtable:bigtable-hbase-2.x:$bigtableVersion") {
+        // see https://issues.apache.org/jira/browse/HBASE-22889
         exclude group: 'org.apache.hbase', module: 'hbase-shaded-client'
     }
     api "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     api ("org.apache.hbase:hbase-client:$hbaseClientVersion") {
+        exclude group: 'org.apache.hadoop', module: 'hadoop-auth'
         exclude group: 'org.apache.hadoop', module: 'hadoop-common'
         exclude group: 'org.apache.zookeeper', module: 'zookeeper'
     }
-    api ("org.apache.hadoop:hadoop-common:$hadoopCommonVersion") {
+    api ("org.apache.hadoop:hadoop-common:$hadoopVersion") {
+        exclude group: 'com.github.pjfanning', module: 'jersey-json'
+        exclude group: 'org.apache.avro', module: 'avro'
+        exclude group: 'org.apache.hadoop', module: 'hadoop-auth'
         exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+        exclude group: 'org.xerial.snappy', module: 'snappy-java'
     }
+    implementation("com.github.pjfanning:jersey-json:$jerseyJsonVersion") {
+        exclude group: 'org.codehaus.jettison', module: 'jettison'
+    }
+    implementation "org.codehaus.jettison:jettison:${jettisonVersion}"
+    implementation "org.apache.avro:avro:$avroVersion"
+    implementation("org.apache.hadoop:hadoop-auth:$hadoopVersion") {
+        exclude group: 'net.minidev', module: 'json-smart'
+    }
+    implementation "net.minidev:json-smart:$jsonSmartVersion"
     implementation ("org.apache.zookeeper:zookeeper:$zookeeperVersion") {
         exclude group: 'io.netty', module: 'netty-handler'
     }
     implementation "io.netty:netty-handler:$nettyVersion"
+    implementation "org.eclipse.jetty:jetty-server:$jettyServerVersion"
+    implementation "org.xerial.snappy:snappy-java:$snappyJavaVersion"
 }
